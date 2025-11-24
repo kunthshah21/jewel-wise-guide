@@ -4,6 +4,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";
 import { KPICard } from "@/components/KPICard";
 import { AISuggestionCard } from "@/components/AISuggestionCard";
+import { JewelAIChat } from "@/components/JewelAIChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -1032,6 +1033,22 @@ function DashboardContent() {
           </SortableContext>
         </div>
       </DndContext>
+
+      {/* Jewel AI Chat Section */}
+      <div className="mt-8">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-primary" />
+            Chat with Jewel AI
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Ask questions, get instant insights, and receive proactive alerts
+          </p>
+        </div>
+        <div className="h-[600px]">
+          <JewelAIChat />
+        </div>
+      </div>
     </div>
   );
 }
