@@ -5,11 +5,9 @@ import {
   TrendingUp, 
   Search, 
   BarChart3,
-  Sparkles,
-  ChevronLeft
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,35 +22,24 @@ const navItems = [
   { to: "/analytics", icon: BarChart3, label: "Custom Analytics" },
 ];
 
-export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
+export const Sidebar = ({ isOpen }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        "flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 overflow-hidden",
-        isOpen ? "w-64" : "w-0"
+        "flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        isOpen ? "w-64" : "w-0 md:w-16"
       )}
     >
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 px-4 border-b border-sidebar-border">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary shrink-0">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
           <Sparkles className="h-5 w-5 text-primary-foreground" />
         </div>
         {isOpen && (
-          <>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-semibold text-sidebar-foreground">JewelAI</h1>
-              <p className="text-xs text-muted-foreground">Business Intelligence</p>
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onToggle}
-              className="h-8 w-8 shrink-0 border-sidebar-border hover:bg-sidebar-accent hover:border-sidebar-accent-foreground"
-              aria-label="Hide sidebar"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </>
+          <div>
+            <h1 className="text-sm font-semibold text-sidebar-foreground">JewelAI</h1>
+            <p className="text-xs text-muted-foreground">Business Intelligence</p>
+          </div>
         )}
       </div>
 
