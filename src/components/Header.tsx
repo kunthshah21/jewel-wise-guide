@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDashboardCustomization } from "@/contexts/DashboardCustomizationContext";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -18,6 +19,7 @@ interface HeaderProps {
 export const Header = ({ onMenuClick, sidebarOpen }: HeaderProps) => {
   const location = useLocation();
   const { isCustomizeMode, toggleCustomizeMode } = useDashboardCustomization();
+  const { days, setDays } = useDateFilter();
   const isDashboard = location.pathname === "/";
 
   return (
@@ -34,15 +36,18 @@ export const Header = ({ onMenuClick, sidebarOpen }: HeaderProps) => {
         
         <div className="flex items-center gap-3">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <Select defaultValue="30">
+          <Select 
+            value={days.toString()} 
+            onValueChange={(value) => setDays(parseInt(value))}
+          >
             <SelectTrigger className="w-[140px] border-none bg-transparent text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="7">Last 7 days</SelectItem>
               <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="60">Last 60 days</SelectItem>
               <SelectItem value="90">Last 90 days</SelectItem>
-              <SelectItem value="365">Last year</SelectItem>
             </SelectContent>
           </Select>
         </div>

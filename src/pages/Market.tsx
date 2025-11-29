@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiService } from "@/services/apiService";
+import { useDateFilter } from "@/contexts/DateFilterContext";
 import {
   LineChart,
   Line,
@@ -13,32 +16,50 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const trendData = [
-  { month: "Jan", gold: 45, silver: 30, diamond: 15 },
-  { month: "Feb", gold: 52, silver: 28, diamond: 18 },
-  { month: "Mar", gold: 48, silver: 32, diamond: 22 },
-  { month: "Apr", gold: 61, silver: 35, diamond: 25 },
-  { month: "May", gold: 55, silver: 38, diamond: 28 },
-  { month: "Jun", gold: 67, silver: 42, diamond: 32 },
-];
-
-const interestData = [
-  { week: "W1", interest: 65 },
-  { week: "W2", interest: 72 },
-  { week: "W3", interest: 68 },
-  { week: "W4", interest: 85 },
-  { week: "W5", interest: 78 },
-  { week: "W6", interest: 92 },
-];
-
-const trendingCategories = [
-  { name: "Lightweight Gold Chains", trend: "up", change: "+24%", color: "text-success" },
-  { name: "Diamond Studs", trend: "up", change: "+18%", color: "text-success" },
-  { name: "Temple Jewellery", trend: "up", change: "+15%", color: "text-success" },
-  { name: "Silver Anklets", trend: "down", change: "-8%", color: "text-destructive" },
-];
-
 export default function Market() {
+  const { getDateRange } = useDateFilter();
+  const { startDate, endDate } = getDateRange();
+  
+  // Fetch market trends with date filter
+  const { data: marketTrends } = useQuery({
+    queryKey: ["market-trends", startDate, endDate],
+    queryFn: () => apiService.fetchMarketTrends(startDate, endDate),
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+  
+  // Transform market trends to trending categories format
+  const trendingCategories = marketTrends?.slice(0, 4).map(trend => ({
+    name: trend.category,
+    trend: trend.risk < 35 ? "up" : "down",
+    change: `${trend.risk < 35 ? '+' : '-'}${Math.round(Math.abs(50 - trend.risk))}%`,
+    color: trend.risk < 35 ? "text-success" : "text-destructive",
+  })) || [
+    { name: "Lightweight Gold Chains", trend: "up", change: "+24%", color: "text-success" },
+    { name: "Diamond Studs", trend: "up", change: "+18%", color: "text-success" },
+    { name: "Temple Jewellery", trend: "up", change: "+15%", color: "text-success" },
+    { name: "Silver Anklets", trend: "down", change: "-8%", color: "text-destructive" },
+  ];
+  
+  // Transform for chart data (dummy time series - would need historical data for real time series)
+  const trendData = [
+    { month: "Jan", gold: 45, silver: 30, diamond: 15 },
+    { month: "Feb", gold: 52, silver: 28, diamond: 18 },
+    { month: "Mar", gold: 48, silver: 32, diamond: 22 },
+    { month: "Apr", gold: 61, silver: 35, diamond: 25 },
+    { month: "May", gold: 55, silver: 38, diamond: 28 },
+    { month: "Jun", gold: 67, silver: 42, diamond: 32 },
+  ];
+  
+  const interestData = [
+    { week: "W1", interest: 65 },
+    { week: "W2", interest: 72 },
+    { week: "W3", interest: 68 },
+    { week: "W4", interest: 85 },
+    { week: "W5", interest: 78 },
+    { week: "W6", interest: 92 },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}

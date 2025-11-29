@@ -1,12 +1,13 @@
 # api/main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
 import pickle
 import json
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from datetime import datetime, timedelta
 
 app = FastAPI(title="JewelAI API", version="1.0.0")
 
@@ -26,17 +27,28 @@ DATA_DIR = BASE_DIR / "output"
 # Global variables for loaded data
 turnover_df = None
 ensemble_df = None
+sales_df = None  # Full sales data with dates
 metrics = None
 ensemble_model_package = None
 
 # Load data on startup
 @app.on_event("startup")
 async def load_data():
-    global turnover_df, ensemble_df, metrics, ensemble_model_package
+    global turnover_df, ensemble_df, sales_df, metrics, ensemble_model_package
     try:
         print("Loading data files...")
         turnover_df = pd.read_csv(DATA_DIR / "inventory_turnover_predictions.csv")
         ensemble_df = pd.read_csv(DATA_DIR / "ensemble_predictions.csv")
+        
+        # Load full sales data with dates for filtering
+        sales_path = BASE_DIR / "Data" / "jewellery_multi_store_dataset" / "multi_store_denorm_sales.csv"
+        if sales_path.exists():
+            sales_df = pd.read_csv(sales_path)
+            sales_df['voucher_date'] = pd.to_datetime(sales_df['voucher_date'])
+            print(f"✓ Sales data loaded: {len(sales_df)} records")
+        else:
+            print("⚠ Sales data not found, date filtering will be limited")
+        
         with open(DATA_DIR / "ensemble_metrics.json", 'r') as f:
             metrics = json.load(f)
         
@@ -70,53 +82,119 @@ def read_root():
         ]
     }
 
+# Helper function to filter by date range
+def filter_by_date(df: pd.DataFrame, start_date: Optional[str], end_date: Optional[str]) -> pd.DataFrame:
+    """Filter dataframe by date range if dates are provided"""
+    if start_date is None and end_date is None:
+        return df
+    
+    if 'voucher_date' not in df.columns:
+        return df
+    
+    filtered = df.copy()
+    if start_date:
+        filtered = filtered[filtered['voucher_date'] >= start_date]
+    if end_date:
+        filtered = filtered[filtered['voucher_date'] <= end_date]
+    
+    return filtered
+
 # KPIs endpoint
 @app.get("/api/kpis/summary")
-def get_kpis():
+def get_kpis(
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
+):
     """Get KPI summary including total stock value, ageing stock, deadstock, and fast-moving items"""
     try:
-        total_stock = float(turnover_df['predicted_potential_sales'].sum())
-        
-        # Use inventory_risk_score for realistic categorization (max risk ~50)
-        # Ageing Stock: Items with high risk (>45) - items that move slowly
-        ageing_stock = len(turnover_df[turnover_df['inventory_risk_score'] > 45])
-        
-        # Predicted Deadstock: Items with very high risk (>48) - potential dead inventory
-        deadstock = len(turnover_df[turnover_df['inventory_risk_score'] > 48])
-        
-        # Fast Moving Items: Items with low risk (<30) - quick turnover items
-        fast_moving = len(turnover_df[turnover_df['inventory_risk_score'] < 30])
+        # Use sales_df with date filtering if available, otherwise use turnover_df
+        if sales_df is not None and (start_date or end_date):
+            filtered_sales = filter_by_date(sales_df, start_date, end_date)
+            
+            # Calculate metrics from filtered sales
+            total_stock = float(filtered_sales['value'].sum())
+            
+            # Group by label to get unique items
+            items_df = filtered_sales.groupby('label_no').agg({
+                'value': 'sum',
+                'voucher_date': ['min', 'max']
+            }).reset_index()
+            
+            # Calculate age and velocity
+            items_df['days_active'] = (items_df[('voucher_date', 'max')] - items_df[('voucher_date', 'min')]).dt.days + 1
+            items_df['risk_score'] = items_df['days_active'].apply(lambda x: min(x * 5, 50))  # Simple risk calculation
+            
+            ageing_stock = len(items_df[items_df['risk_score'] > 45])
+            deadstock = len(items_df[items_df['risk_score'] > 48])
+            fast_moving = len(items_df[items_df['risk_score'] < 30])
+            total_items = len(items_df)
+        else:
+            # Fallback to turnover_df
+            total_stock = float(turnover_df['predicted_potential_sales'].sum())
+            ageing_stock = len(turnover_df[turnover_df['inventory_risk_score'] > 45])
+            deadstock = len(turnover_df[turnover_df['inventory_risk_score'] > 48])
+            fast_moving = len(turnover_df[turnover_df['inventory_risk_score'] < 30])
+            total_items = len(turnover_df)
         
         return {
             "totalStockValue": total_stock,
             "ageingStock": ageing_stock,
             "predictedDeadstock": deadstock,
             "fastMovingItems": fast_moving,
-            "totalItems": len(turnover_df)
+            "totalItems": total_items
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # Inventory categories endpoint
 @app.get("/api/inventory/categories")
-def get_inventory_categories():
+def get_inventory_categories(
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
+):
     """Get inventory breakdown by category with stock value, turnover, and risk metrics"""
     try:
-        category_summary = turnover_df.groupby('category').agg({
-            'predicted_potential_sales': 'sum',
-            'days_to_sell': 'mean',
-            'inventory_risk_score': 'mean',
-            'label_no': 'count'
-        }).reset_index()
+        # Use sales_df with date filtering if available
+        if sales_df is not None and (start_date or end_date):
+            filtered_sales = filter_by_date(sales_df, start_date, end_date)
+            
+            # Group by category
+            category_summary = filtered_sales.groupby('category').agg({
+                'value': 'sum',
+                'label_no': 'count',
+                'voucher_date': ['min', 'max']
+            }).reset_index()
+            
+            # Calculate metrics
+            category_summary.columns = ['category', 'stockValue', 'itemCount', 'first_date', 'last_date']
+            category_summary['avgDaysToSell'] = ((pd.to_datetime(category_summary['last_date']) - 
+                                                  pd.to_datetime(category_summary['first_date'])).dt.days / 
+                                                  category_summary['itemCount']).fillna(1)
+            category_summary['riskScore'] = category_summary['avgDaysToSell'].apply(lambda x: min(x * 5, 50))
+            category_summary['trend'] = category_summary['avgDaysToSell'].apply(
+                lambda x: 'rising' if x < 7 else 'falling' if x > 30 else 'stable'
+            )
+            
+            # Select and rename columns
+            result = category_summary[['category', 'stockValue', 'avgDaysToSell', 'riskScore', 'itemCount', 'trend']]
+        else:
+            # Fallback to turnover_df
+            category_summary = turnover_df.groupby('category').agg({
+                'predicted_potential_sales': 'sum',
+                'days_to_sell': 'mean',
+                'inventory_risk_score': 'mean',
+                'label_no': 'count'
+            }).reset_index()
+            
+            category_summary.columns = ['category', 'stockValue', 'avgDaysToSell', 'riskScore', 'itemCount']
+            
+            # Add velocity trend
+            category_summary['trend'] = category_summary['avgDaysToSell'].apply(
+                lambda x: 'rising' if x < 7 else 'falling' if x > 30 else 'stable'
+            )
+            result = category_summary
         
-        category_summary.columns = ['category', 'stockValue', 'avgDaysToSell', 'riskScore', 'itemCount']
-        
-        # Add velocity trend
-        category_summary['trend'] = category_summary['avgDaysToSell'].apply(
-            lambda x: 'rising' if x < 7 else 'falling' if x > 30 else 'stable'
-        )
-        
-        return category_summary.to_dict('records')
+        return result.to_dict('records')
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -140,19 +218,44 @@ def get_analytics_performance():
 
 # Market trends endpoint
 @app.get("/api/market/trends")
-def get_market_trends():
+def get_market_trends(
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
+):
     """Get market trends aggregated by category"""
     try:
-        # Aggregate by category for market view
-        trends = turnover_df.groupby('category').agg({
-            'predicted_potential_sales': ['sum', 'mean'],
-            'inventory_risk_score': 'mean',
-            'days_to_sell': 'mean'
-        }).reset_index()
+        # Use sales_df with date filtering if available
+        if sales_df is not None and (start_date or end_date):
+            filtered_sales = filter_by_date(sales_df, start_date, end_date)
+            
+            # Aggregate by category for market view
+            trends = filtered_sales.groupby('category').agg({
+                'value': ['sum', 'mean'],
+                'voucher_date': ['min', 'max'],
+                'label_no': 'count'
+            }).reset_index()
+            
+            trends.columns = ['category', 'total_sales', 'avg_sales', 'first_date', 'last_date', 'item_count']
+            
+            # Calculate risk and turnover days
+            trends['turnover_days'] = ((pd.to_datetime(trends['last_date']) - 
+                                       pd.to_datetime(trends['first_date'])).dt.days / 
+                                       trends['item_count']).fillna(1)
+            trends['risk'] = trends['turnover_days'].apply(lambda x: min(x * 5, 50))
+            
+            result = trends[['category', 'total_sales', 'avg_sales', 'risk', 'turnover_days']]
+        else:
+            # Fallback to turnover_df
+            trends = turnover_df.groupby('category').agg({
+                'predicted_potential_sales': ['sum', 'mean'],
+                'inventory_risk_score': 'mean',
+                'days_to_sell': 'mean'
+            }).reset_index()
+            
+            trends.columns = ['category', 'total_sales', 'avg_sales', 'risk', 'turnover_days']
+            result = trends
         
-        trends.columns = ['category', 'total_sales', 'avg_sales', 'risk', 'turnover_days']
-        
-        return trends.to_dict('records')
+        return result.to_dict('records')
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

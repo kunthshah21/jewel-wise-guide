@@ -1,6 +1,9 @@
 // src/services/apiService.ts
 
+import { clientDataService } from './clientDataService';
+
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const USE_CLIENT_SIDE = true; // Set to true to use client-side data loading (no backend required)
 
 export interface KPIData {
   totalStockValue: number;
@@ -71,16 +74,80 @@ class APIService {
   }
 
   // Fetch from static JSON files (no API required)
-  async fetchKPIs(): Promise<KPIData> {
+  async fetchKPIs(startDate?: string, endDate?: string): Promise<KPIData> {
+    // Try client-side data loading first
+    if (USE_CLIENT_SIDE && startDate && endDate) {
+      try {
+        console.log('📊 Using client-side data filtering');
+        const allData = await clientDataService.loadSalesData();
+        const filteredData = clientDataService.filterByDateRange(allData, startDate, endDate);
+        const kpis = clientDataService.calculateKPIs(filteredData);
+        console.log('✅ Client-side KPIs:', kpis);
+        return kpis;
+      } catch (error) {
+        console.warn('⚠️ Client-side loading failed, trying backend:', error);
+      }
+    }
+    
+    try {
+      // Try backend API with date filters
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const queryString = params.toString();
+      const url = queryString 
+        ? `${this.baseUrl}/api/kpis/summary?${queryString}`
+        : `${this.baseUrl}/api/kpis/summary`;
+      
+      console.log('📡 Fetching KPIs from:', url);
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ KPI Data from backend:', data);
+        return data;
+      } else {
+        console.warn('⚠️ Backend returned status:', response.status);
+      }
+    } catch (error) {
+      console.warn('❌ Backend API not available', error);
+    }
+    
+    // Fallback to static JSON
+    console.log('📄 Using static kpis.json');
     const response = await fetch('/data/kpis.json');
     if (!response.ok) throw new Error('Failed to fetch KPIs');
-    return response.json();
+    const data = await response.json();
+    console.log('📊 Static KPI Data:', data);
+    return data;
   }
 
-  async fetchInventoryCategories(): Promise<InventoryCategory[]> {
+  async fetchInventoryCategories(startDate?: string, endDate?: string): Promise<InventoryCategory[]> {
+    // Try client-side data loading first
+    if (USE_CLIENT_SIDE && startDate && endDate) {
+      try {
+        console.log('📊 Using client-side data filtering for categories');
+        const allData = await clientDataService.loadSalesData();
+        const filteredData = clientDataService.filterByDateRange(allData, startDate, endDate);
+        const categories = clientDataService.calculateCategories(filteredData);
+        console.log('✅ Client-side categories:', categories.length);
+        return categories;
+      } catch (error) {
+        console.warn('⚠️ Client-side loading failed, trying backend:', error);
+      }
+    }
+    
     try {
-      // Try to fetch from backend API first
-      const response = await fetch(`${this.baseUrl}/api/inventory/categories`);
+      // Try to fetch from backend API first with date filters
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const queryString = params.toString();
+      const url = queryString 
+        ? `${this.baseUrl}/api/inventory/categories?${queryString}`
+        : `${this.baseUrl}/api/inventory/categories`;
+      
+      const response = await fetch(url);
       if (response.ok) {
         return response.json();
       }
@@ -94,13 +161,51 @@ class APIService {
     return response.json();
   }
 
-  async fetchMarketTrends(): Promise<MarketTrend[]> {
+  async fetchMarketTrends(startDate?: string, endDate?: string): Promise<MarketTrend[]> {
+    try {
+      // Try backend API with date filters
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const queryString = params.toString();
+      const url = queryString 
+        ? `${this.baseUrl}/api/market/trends?${queryString}`
+        : `${this.baseUrl}/api/market/trends`;
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        return response.json();
+      }
+    } catch (error) {
+      console.warn('Backend API not available, falling back to static data', error);
+    }
+    
+    // Fallback to static JSON
     const response = await fetch('/data/market.json');
     if (!response.ok) throw new Error('Failed to fetch market trends');
     return response.json();
   }
 
-  async fetchAnalyticsData(): Promise<any> {
+  async fetchAnalyticsData(startDate?: string, endDate?: string): Promise<any> {
+    try {
+      // Try backend API with date filters
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const queryString = params.toString();
+      const url = queryString 
+        ? `${this.baseUrl}/api/analytics/data?${queryString}`
+        : `${this.baseUrl}/api/analytics/data`;
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        return response.json();
+      }
+    } catch (error) {
+      console.warn('Backend API not available, falling back to static data', error);
+    }
+    
+    // Fallback to static JSON
     const response = await fetch('/data/analytics.json');
     if (!response.ok) throw new Error('Failed to fetch analytics');
     return response.json();

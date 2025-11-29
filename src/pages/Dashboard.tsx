@@ -4,6 +4,8 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
+import { useDateFilter } from "@/contexts/DateFilterContext";
+import { formatIndianCurrency, formatChartValue } from "@/lib/utils";
 import { KPICard } from "@/components/KPICard";
 import { AISuggestionCard } from "@/components/AISuggestionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,35 +106,39 @@ function DashboardContent() {
   const [keywordQuery, setKeywordQuery] = useState("gold chain");
   const [hasSearched, setHasSearched] = useState(false);
   const { isCustomizeMode, toggleCustomizeMode } = useDashboardCustomization();
+  const { getDateRange } = useDateFilter();
   
-  // Fetch real KPI data from API
+  // Get date range for API calls
+  const { startDate, endDate } = getDateRange();
+  
+  // Fetch real KPI data from API with date filter
   const { data: kpis, isLoading: kpisLoading, error: kpisError } = useQuery({
-    queryKey: ['kpis'],
-    queryFn: () => apiService.fetchKPIs(),
+    queryKey: ['kpis', startDate, endDate],
+    queryFn: () => apiService.fetchKPIs(startDate, endDate),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: 1,
   });
 
-  // Fetch inventory categories for stock distribution chart
+  // Fetch inventory categories for stock distribution chart with date filter
   const { data: categories } = useQuery({
-    queryKey: ['inventory-categories'],
-    queryFn: () => apiService.fetchInventoryCategories(),
+    queryKey: ['inventory-categories', startDate, endDate],
+    queryFn: () => apiService.fetchInventoryCategories(startDate, endDate),
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 
-  // Fetch analytics data
+  // Fetch analytics data with date filter
   const { data: analyticsData } = useQuery({
-    queryKey: ['analytics-data'],
-    queryFn: () => apiService.fetchAnalyticsData(),
+    queryKey: ['analytics-data', startDate, endDate],
+    queryFn: () => apiService.fetchAnalyticsData(startDate, endDate),
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 
-  // Fetch market trends
+  // Fetch market trends with date filter
   const { data: marketTrendsData } = useQuery({
-    queryKey: ['market-trends'],
-    queryFn: () => apiService.fetchMarketTrends(),
+    queryKey: ['market-trends', startDate, endDate],
+    queryFn: () => apiService.fetchMarketTrends(startDate, endDate),
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
@@ -140,7 +146,7 @@ function DashboardContent() {
   // Transform categories for stock distribution chart
   const stockData = categories?.map(cat => ({
     name: cat.category,
-    value: Math.round(cat.stockValue / 100000), // Convert to lakhs
+    value: cat.stockValue, // Keep actual value, format in chart
   })) || [];
 
   // Transform categories for inventory popup
@@ -169,9 +175,9 @@ function DashboardContent() {
   // Transform market data for chart (using categories)
   const marketTrendData = categories?.slice(0, 3).map((cat, idx) => ({
     month: ['Jan', 'Feb', 'Mar', 'Apr'][idx] || 'N/A',
-    gold: cat.category === 'CHAIN' ? Math.round(cat.stockValue / 10000) : 0,
-    silver: cat.category === 'BANGLE' ? Math.round(cat.stockValue / 10000) : 0,
-    diamond: cat.category === 'EARRING' ? Math.round(cat.stockValue / 10000) : 0,
+    gold: cat.category === 'CHAIN' ? cat.stockValue : 0,
+    silver: cat.category === 'BANGLE' ? cat.stockValue : 0,
+    diamond: cat.category === 'EARRING' ? cat.stockValue : 0,
   })).filter(d => d.month !== 'N/A') || [];
 
   // Performance data from analytics
@@ -383,7 +389,7 @@ function DashboardContent() {
     if (kpis && !kpisLoading) {
       switch (kpiId) {
         case "kpi-total-stock":
-          value = `₹${(kpis.totalStockValue / 100000).toFixed(1)}L`;
+          value = formatIndianCurrency(kpis.totalStockValue);
           change = `${kpis.totalItems} items in inventory`;
           changeType = "neutral" as const;
           break;
@@ -494,6 +500,7 @@ function DashboardContent() {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "0.5rem",
                     }}
+                    formatter={(value: any) => formatIndianCurrency(value)}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -621,13 +628,17 @@ function DashboardContent() {
                 <BarChart data={stockData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))" 
+                    tickFormatter={(value) => formatChartValue(value)}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "0.5rem",
                     }}
+                    formatter={(value: any) => [formatIndianCurrency(value), "Stock Value"]}
                   />
                   <Bar 
                     dataKey="value" 
@@ -742,13 +753,17 @@ function DashboardContent() {
                           <LineChart data={marketTrendData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                             <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                            <YAxis stroke="hsl(var(--muted-foreground))" />
+                            <YAxis 
+                              stroke="hsl(var(--muted-foreground))" 
+                              tickFormatter={(value) => formatChartValue(value)}
+                            />
                             <Tooltip
                               contentStyle={{
                                 backgroundColor: "hsl(var(--card))",
                                 border: "1px solid hsl(var(--border))",
                                 borderRadius: "0.5rem",
                               }}
+                              formatter={(value: any) => formatIndianCurrency(value)}
                             />
                             <Line
                               type="monotone"
@@ -1011,7 +1026,7 @@ function DashboardContent() {
             </p>
             <p className="text-base text-white/90 leading-relaxed">
               {kpis ? (
-                `You have ${kpis.totalItems} items in inventory worth ₹${(kpis.totalStockValue / 100000).toFixed(1)}L. 
+                `You have ${kpis.totalItems} items in inventory worth ${formatIndianCurrency(kpis.totalStockValue).replace('₹', '₹')}. 
                 ${kpis.fastMovingItems} items are fast-moving, while ${kpis.ageingStock} items need attention.`
               ) : 'Analyzing your inventory data...'}
             </p>

@@ -4,6 +4,8 @@ import { InventoryCard } from "@/components/InventoryCard";
 import { Input } from "@/components/ui/input";
 import { Search, AlertCircle } from "lucide-react";
 import { apiService, type InventoryCategory } from "@/services/apiService";
+import { useDateFilter } from "@/contexts/DateFilterContext";
+import { formatIndianCurrency } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -38,7 +40,7 @@ const transformInventoryData = (data: InventoryCategory[]) => {
     category: item.category.charAt(0) + item.category.slice(1).toLowerCase(),
     icon: getCategoryIcon(item.category),
     stockCount: item.itemCount,
-    sales30d: Math.round(item.stockValue / 100000), // Convert to lakhs for display
+    sales30d: formatIndianCurrency(item.stockValue).replace('₹', ''), // Remove ₹ symbol as it's just a value display
     ageing: Math.round(item.avgDaysToSell),
     deadstockRisk: getRiskLevel(item.riskScore),
     reorderSuggestion: item.trend === "rising" && item.riskScore < 40,
@@ -49,11 +51,15 @@ const transformInventoryData = (data: InventoryCategory[]) => {
 
 export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { getDateRange } = useDateFilter();
+  
+  // Get date range for API calls
+  const { startDate, endDate } = getDateRange();
 
-  // Fetch real inventory data from backend
+  // Fetch real inventory data from backend with date filter
   const { data: inventoryCategories, isLoading, error } = useQuery({
-    queryKey: ["inventory-categories"],
-    queryFn: () => apiService.fetchInventoryCategories(),
+    queryKey: ["inventory-categories", startDate, endDate],
+    queryFn: () => apiService.fetchInventoryCategories(startDate, endDate),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: 1,
   });

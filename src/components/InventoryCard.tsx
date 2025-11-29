@@ -7,7 +7,7 @@ interface InventoryCardProps {
   category: string;
   icon: string;
   stockCount: number;
-  sales30d: number;
+  sales30d: number | string;  // Can be number or formatted string
   ageing: number;
   deadstockRisk: "low" | "medium" | "high";
   reorderSuggestion: boolean;
