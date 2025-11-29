@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calculator, TrendingUp, Package, Calendar, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import TechnicalDetailsCard from "@/components/TechnicalDetailsCard";
 
 const CATEGORIES = [
   'BANGLE',
@@ -221,7 +222,7 @@ export default function Predictions() {
         </Card>
 
         {/* Results Panel */}
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col">
           {/* Success Result */}
           {mutation.isSuccess && mutation.data && (
             <Card className="border-green-200 bg-green-50/50">
@@ -286,23 +287,28 @@ export default function Predictions() {
 
           {/* Info Card */}
           {!mutation.isSuccess && !mutation.isError && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">How It Works</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  Our AI-powered predictor uses an ensemble of machine learning models trained on
-                  4,744+ sales records.
-                </p>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li>99.62% R² accuracy</li>
-                  <li>Trained on 7 store data</li>
-                  <li>Considers category, weight, and market trends</li>
-                  <li>Real-time predictions</li>
-                </ul>
-              </CardContent>
-            </Card>
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">How It Works</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    Our AI-powered predictor uses an ensemble of machine learning models trained on
+                    4,744+ sales records.
+                  </p>
+                  <ul className="space-y-2 list-disc list-inside">
+                    <li>99.62% R² accuracy</li>
+                    <li>Trained on 7 store data</li>
+                    <li>Considers category, weight, and market trends</li>
+                    <li>Real-time predictions</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              
+              {/* Technical Details Card */}
+              <TechnicalDetailsCard />
+            </>
           )}
         </div>
       </div>
@@ -371,39 +377,6 @@ export default function Predictions() {
           </CardContent>
         </Card>
       )}
-
-      {/* Model Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Model Information</CardTitle>
-          <CardDescription>
-            Details about the prediction ensemble model
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">R² Score</p>
-              <p className="text-2xl font-bold text-primary">99.62%</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Training Data</p>
-              <p className="text-2xl font-bold">4,744</p>
-              <p className="text-xs text-muted-foreground">sales records</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Categories</p>
-              <p className="text-2xl font-bold">7</p>
-              <p className="text-xs text-muted-foreground">product types</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Base Models</p>
-              <p className="text-2xl font-bold">5</p>
-              <p className="text-xs text-muted-foreground">ensemble members</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
