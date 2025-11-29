@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 import { Menu, Calendar, Filter } from "lucide-react";
+=======
+import { Menu, Bell, Calendar, Settings2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
+>>>>>>> parent of b660909 (Reverted to commit 3c906b6c4f88194db85be0f1c5b601550854e2cd)
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -7,14 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+<<<<<<< HEAD
 import { useFilter } from "@/contexts/FilterContext";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+=======
+import { useDashboardCustomization } from "@/contexts/DashboardCustomizationContext";
+>>>>>>> parent of b660909 (Reverted to commit 3c906b6c4f88194db85be0f1c5b601550854e2cd)
 
 interface HeaderProps {
   onMenuClick: () => void;
+  sidebarOpen: boolean;
 }
 
+<<<<<<< HEAD
 export const Header = ({ onMenuClick }: HeaderProps) => {
   const { timePeriod, setTimePeriod } = useFilter();
   const { toast } = useToast();
@@ -34,6 +45,12 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
       duration: 2000,
     });
   };
+=======
+export const Header = ({ onMenuClick, sidebarOpen }: HeaderProps) => {
+  const location = useLocation();
+  const { isCustomizeMode, toggleCustomizeMode } = useDashboardCustomization();
+  const isDashboard = location.pathname === "/";
+>>>>>>> parent of b660909 (Reverted to commit 3c906b6c4f88194db85be0f1c5b601550854e2cd)
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 md:px-6">
@@ -42,7 +59,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
           variant="ghost"
           size="icon"
           onClick={onMenuClick}
-          className="md:hidden"
+          className={sidebarOpen ? "md:hidden" : ""}
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -66,6 +83,27 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
           </Select>
         </div>
       </div>
+<<<<<<< HEAD
+=======
+
+      <div className="flex items-center gap-2">
+        {isDashboard && (
+          <Button 
+            variant={isCustomizeMode ? "default" : "ghost"} 
+            size="sm"
+            onClick={toggleCustomizeMode}
+            className="gap-2"
+          >
+            <Settings2 className="h-4 w-4" />
+            Customise
+          </Button>
+        )}
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
+        </Button>
+      </div>
+>>>>>>> parent of b660909 (Reverted to commit 3c906b6c4f88194db85be0f1c5b601550854e2cd)
     </header>
   );
 };

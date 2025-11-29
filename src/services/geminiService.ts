@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { KeywordAnalysis } from "@/types/keywordIntelligence";
+<<<<<<< HEAD
 import { MarketOverview } from "@/types/marketOverview";
+=======
+>>>>>>> parent of b660909 (Reverted to commit 3c906b6c4f88194db85be0f1c5b601550854e2cd)
 
 // Initialize the Gemini API client
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -106,6 +109,7 @@ Ensure all data is realistic and relevant to the jewelry industry. Use actual ma
 }
 
 /**
+<<<<<<< HEAD
  * Analyzes the Indian jewellery market using Google Gemini API to provide comprehensive market overview
  * @returns Promise with market overview data
  */
@@ -208,6 +212,8 @@ Ensure all data is realistic, relevant to the Indian market, and shows meaningfu
 }
 
 /**
+=======
+>>>>>>> parent of b660909 (Reverted to commit 3c906b6c4f88194db85be0f1c5b601550854e2cd)
  * Check if the Gemini API is properly configured
  */
 export function isGeminiConfigured(): boolean {
