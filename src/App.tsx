@@ -8,11 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Market from "./pages/Market";
 import Keywords from "./pages/Keywords";
-<<<<<<< Updated upstream
-=======
-import Analytics from "./pages/Analytics";
 import Predictions from "./pages/Predictions";
->>>>>>> Stashed changes
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,11 +25,7 @@ const App = () => (
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/market" element={<Market />} />
             <Route path="/keywords" element={<Keywords />} />
-<<<<<<< Updated upstream
-=======
-            <Route path="/analytics" element={<Analytics />} />
             <Route path="/predictions" element={<Predictions />} />
->>>>>>> Stashed changes
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

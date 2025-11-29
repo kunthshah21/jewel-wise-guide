@@ -1,0 +1,1135 @@
+{
+  "all_predictions": [
+    {
+      "actual_sales": 64055.21,
+      "ensemble_prediction": 65742.51194528019,
+      "linear_reg": 68663.89664998415,
+      "ridge": 68718.24903697011,
+      "random_forest": 63633.01654785716,
+      "gradient_boosting": 63835.81373155271,
+      "xgboost": 63985.086,
+      "error": -1687.301945280189,
+      "error_percentage": -2.6341369348101256
+    },
+    {
+      "actual_sales": 26361.44,
+      "ensemble_prediction": 27931.169427920988,
+      "linear_reg": 30360.387783338178,
+      "ridge": 30115.926971579684,
+      "random_forest": 26581.65049771063,
+      "gradient_boosting": 26214.168216588896,
+      "xgboost": 26480.387,
+      "error": -1569.729427920989,
+      "error_percentage": -5.954642189201308
+    },
+    {
+      "actual_sales": 35836.49,
+      "ensemble_prediction": 39001.047653679176,
+      "linear_reg": 44478.99844835467,
+      "ridge": 44451.934954470016,
+      "random_forest": 35769.87707499998,
+      "gradient_boosting": 34966.44010463974,
+      "xgboost": 35566.97,
+      "error": -3164.5576536791777,
+      "error_percentage": -8.83054577521174
+    },
+    {
+      "actual_sales": 266606.7,
+      "ensemble_prediction": 268811.1924798226,
+      "linear_reg": 264217.0413082086,
+      "ridge": 264006.00062790664,
+      "random_forest": 272219.0788,
+      "gradient_boosting": 268276.4540721822,
+      "xgboost": 275140.44,
+      "error": -2204.4924798225984,
+      "error_percentage": -0.8268706224647012
+    },
+    {
+      "actual_sales": 183339.11,
+      "ensemble_prediction": 184207.8802007793,
+      "linear_reg": 187811.23031843416,
+      "ridge": 186884.7919174297,
+      "random_forest": 181909.5452,
+      "gradient_boosting": 182032.1699508702,
+      "xgboost": 182533.17,
+      "error": -868.7702007793123,
+      "error_percentage": -0.4738597240814097
+    },
+    {
+      "actual_sales": 119101.63,
+      "ensemble_prediction": 119616.19285238262,
+      "linear_reg": 123004.7238637912,
+      "ridge": 123721.01829328436,
+      "random_forest": 117728.79619428563,
+      "gradient_boosting": 116859.08061284022,
+      "xgboost": 116924.41,
+      "error": -514.5628523826163,
+      "error_percentage": -0.4320367843686238
+    },
+    {
+      "actual_sales": 12748.74,
+      "ensemble_prediction": 13401.044507372822,
+      "linear_reg": 14559.509486887357,
+      "ridge": 14629.994776917289,
+      "random_forest": 12818.076324999996,
+      "gradient_boosting": 12522.889738671882,
+      "xgboost": 12524.795,
+      "error": -652.3045073728226,
+      "error_percentage": -5.116619425706561
+    },
+    {
+      "actual_sales": 149682.88,
+      "ensemble_prediction": 159229.30921870773,
+      "linear_reg": 173230.80240035758,
+      "ridge": 172341.7963077473,
+      "random_forest": 151151.259575,
+      "gradient_boosting": 148605.82501603806,
+      "xgboost": 151384.92,
+      "error": -9546.429218707724,
+      "error_percentage": -6.3777696011111775
+    },
+    {
+      "actual_sales": 42206.66,
+      "ensemble_prediction": 43528.075159722765,
+      "linear_reg": 44673.90241327818,
+      "ridge": 44451.67941997166,
+      "random_forest": 42793.00343769226,
+      "gradient_boosting": 42787.45980888296,
+      "xgboost": 42977.668,
+      "error": -1321.415159722761,
+      "error_percentage": -3.13082143842408
+    },
+    {
+      "actual_sales": 327173.47,
+      "ensemble_prediction": 315265.897214569,
+      "linear_reg": 298359.08959705377,
+      "ridge": 297426.8514333238,
+      "random_forest": 327653.03027999995,
+      "gradient_boosting": 325152.1635223512,
+      "xgboost": 327010.62,
+      "error": 11907.572785430995,
+      "error_percentage": 3.6395288363176257
+    },
+    {
+      "actual_sales": 217268.68,
+      "ensemble_prediction": 219573.02869253716,
+      "linear_reg": 223624.85043392313,
+      "ridge": 224440.46866095983,
+      "random_forest": 217923.58575000017,
+      "gradient_boosting": 215884.26101444455,
+      "xgboost": 216179.02,
+      "error": -2304.348692537169,
+      "error_percentage": -1.0605986525702504
+    },
+    {
+      "actual_sales": 141906.87,
+      "ensemble_prediction": 140743.5423343835,
+      "linear_reg": 137726.27857081773,
+      "ridge": 138153.06900634908,
+      "random_forest": 141739.5897499999,
+      "gradient_boosting": 142684.38398814877,
+      "xgboost": 143296.78,
+      "error": 1163.3276656164962,
+      "error_percentage": 0.8197824852429598
+    },
+    {
+      "actual_sales": 113090.85,
+      "ensemble_prediction": 115904.16273889628,
+      "linear_reg": 117118.96856664216,
+      "ridge": 117928.40783587372,
+      "random_forest": 115052.82569428568,
+      "gradient_boosting": 115327.58749185762,
+      "xgboost": 114160.93,
+      "error": -2813.3127388962603,
+      "error_percentage": -2.487657258652013
+    },
+    {
+      "actual_sales": 134403.21,
+      "ensemble_prediction": 133040.65401940586,
+      "linear_reg": 132226.71579771183,
+      "ridge": 132698.41850787372,
+      "random_forest": 134119.72337499997,
+      "gradient_boosting": 132696.38743297348,
+      "xgboost": 133437.9,
+      "error": 1362.5559805941302,
+      "error_percentage": 1.0137823200756368
+    },
+    {
+      "actual_sales": 66669.09,
+      "ensemble_prediction": 68268.1394314467,
+      "linear_reg": 72657.0939310845,
+      "ridge": 72681.41227898357,
+      "random_forest": 66262.66367499999,
+      "gradient_boosting": 64643.671881836555,
+      "xgboost": 65280.37,
+      "error": -1599.0494314467069,
+      "error_percentage": -2.3984869621689855
+    },
+    {
+      "actual_sales": 29684.47,
+      "ensemble_prediction": 24152.84584205046,
+      "linear_reg": 15262.160468221758,
+      "ridge": 15695.784206826618,
+      "random_forest": 30138.809633333334,
+      "gradient_boosting": 30277.881786151887,
+      "xgboost": 29026.264,
+      "error": 5531.62415794954,
+      "error_percentage": 18.634741189415003
+    },
+    {
+      "actual_sales": 59220.19,
+      "ensemble_prediction": 59782.70983763802,
+      "linear_reg": 61482.14249138162,
+      "ridge": 61431.90563491263,
+      "random_forest": 58527.97160000005,
+      "gradient_boosting": 58673.675465360706,
+      "xgboost": 58867.973,
+      "error": -562.5198376380213,
+      "error_percentage": -0.9498784749559588
+    },
+    {
+      "actual_sales": 58488.18,
+      "ensemble_prediction": 61493.76216818729,
+      "linear_reg": 65160.701404379026,
+      "ridge": 65205.75305644315,
+      "random_forest": 58419.47392422615,
+      "gradient_boosting": 59232.628052151,
+      "xgboost": 59604.72,
+      "error": -3005.5821681872912,
+      "error_percentage": -5.138785594264159
+    },
+    {
+      "actual_sales": 23864.35,
+      "ensemble_prediction": 26206.93083050254,
+      "linear_reg": 28640.7045088514,
+      "ridge": 28469.49830578016,
+      "random_forest": 24219.5866602381,
+      "gradient_boosting": 24993.8640767252,
+      "xgboost": 24809.31,
+      "error": -2342.580830502542,
+      "error_percentage": -9.81623564229716
+    },
+    {
+      "actual_sales": 104930.28,
+      "ensemble_prediction": 106416.84166231152,
+      "linear_reg": 106087.67402208678,
+      "ridge": 106127.33870009324,
+      "random_forest": 106460.64494999996,
+      "gradient_boosting": 106826.67160912923,
+      "xgboost": 106568.9,
+      "error": -1486.5616623115202,
+      "error_percentage": -1.4167137096284506
+    },
+    {
+      "actual_sales": 133835.83,
+      "ensemble_prediction": 133473.46364409145,
+      "linear_reg": 135684.06106551632,
+      "ridge": 136329.27144251816,
+      "random_forest": 130609.76482499987,
+      "gradient_boosting": 133635.31185695386,
+      "xgboost": 131214.89,
+      "error": 362.36635590853984,
+      "error_percentage": 0.2707543681752038
+    },
+    {
+      "actual_sales": 47910.38,
+      "ensemble_prediction": 46585.89668498558,
+      "linear_reg": 46041.4770302092,
+      "ridge": 45733.51383269842,
+      "random_forest": 47315.36243598485,
+      "gradient_boosting": 46979.96042214359,
+      "xgboost": 46829.953,
+      "error": 1324.4833150144186,
+      "error_percentage": 2.764501794839487
+    },
+    {
+      "actual_sales": 54610.26,
+      "ensemble_prediction": 53336.216771979656,
+      "linear_reg": 51867.42183690795,
+      "ridge": 52020.02317570458,
+      "random_forest": 54436.19127750001,
+      "gradient_boosting": 53907.29483671076,
+      "xgboost": 54391.836,
+      "error": 1274.043228020346,
+      "error_percentage": 2.332974111495433
+    },
+    {
+      "actual_sales": 46923.94,
+      "ensemble_prediction": 45057.33399773629,
+      "linear_reg": 43545.21235467531,
+      "ridge": 43266.15921862513,
+      "random_forest": 46500.43970000002,
+      "gradient_boosting": 45721.081025348714,
+      "xgboost": 46184.63,
+      "error": 1866.6060022637105,
+      "error_percentage": 3.97793962370532
+    },
+    {
+      "actual_sales": 48171.14,
+      "ensemble_prediction": 49368.56037510526,
+      "linear_reg": 51865.89821776542,
+      "ridge": 51533.17324186799,
+      "random_forest": 48258.64607639564,
+      "gradient_boosting": 47322.87441451435,
+      "xgboost": 47959.92,
+      "error": -1197.4203751052628,
+      "error_percentage": -2.485763000637441
+    },
+    {
+      "actual_sales": 55919.51,
+      "ensemble_prediction": 54654.62813959159,
+      "linear_reg": 52734.131410735135,
+      "ridge": 53007.891408208954,
+      "random_forest": 55571.40433666666,
+      "gradient_boosting": 56545.61241412237,
+      "xgboost": 55339.355,
+      "error": 1264.8818604084154,
+      "error_percentage": 2.2619687840762825
+    },
+    {
+      "actual_sales": 131418.65,
+      "ensemble_prediction": 131803.7212314101,
+      "linear_reg": 131350.77161772008,
+      "ridge": 131970.72912536547,
+      "random_forest": 130347.0255249999,
+      "gradient_boosting": 132466.60943848436,
+      "xgboost": 132877.23,
+      "error": -385.07123141011107,
+      "error_percentage": -0.2930110995738512
+    },
+    {
+      "actual_sales": 35803.68,
+      "ensemble_prediction": 36678.54830071186,
+      "linear_reg": 38731.59441620098,
+      "ridge": 38735.68087406818,
+      "random_forest": 35831.52595000003,
+      "gradient_boosting": 35393.47873421212,
+      "xgboost": 34786.65,
+      "error": -874.8683007118598,
+      "error_percentage": -2.4435150261421725
+    },
+    {
+      "actual_sales": 292468.68,
+      "ensemble_prediction": 290707.01618051797,
+      "linear_reg": 284875.16694701597,
+      "ridge": 284174.20212152123,
+      "random_forest": 296429.2824249999,
+      "gradient_boosting": 293540.6639631566,
+      "xgboost": 294257.0,
+      "error": 1761.6638194820262,
+      "error_percentage": 0.6023427258884699
+    },
+    {
+      "actual_sales": 61571.17,
+      "ensemble_prediction": 60326.47301788039,
+      "linear_reg": 58695.05030049947,
+      "ridge": 58827.235974601266,
+      "random_forest": 60845.166280397425,
+      "gradient_boosting": 61850.874094899584,
+      "xgboost": 61348.387,
+      "error": 1244.6969821196108,
+      "error_percentage": 2.0215581125380773
+    },
+    {
+      "actual_sales": 42057.86,
+      "ensemble_prediction": 42162.46132632849,
+      "linear_reg": 41627.65152353336,
+      "ridge": 41428.78801776631,
+      "random_forest": 42087.60650833333,
+      "gradient_boosting": 43086.27517211811,
+      "xgboost": 42555.344,
+      "error": -104.60132632849128,
+      "error_percentage": -0.248708151885263
+    },
+    {
+      "actual_sales": 154458.37,
+      "ensemble_prediction": 152480.58146320982,
+      "linear_reg": 147881.56567508503,
+      "ridge": 148009.66808580206,
+      "random_forest": 155088.03309999983,
+      "gradient_boosting": 156203.0126619362,
+      "xgboost": 155030.6,
+      "error": 1977.7885367901763,
+      "error_percentage": 1.2804670519248496
+    },
+    {
+      "actual_sales": 76060.92,
+      "ensemble_prediction": 75540.79934176788,
+      "linear_reg": 75221.02679721137,
+      "ridge": 75078.7811053917,
+      "random_forest": 75688.43017857142,
+      "gradient_boosting": 75891.38102658308,
+      "xgboost": 75807.984,
+      "error": 520.1206582321174,
+      "error_percentage": 0.6838211505095093
+    },
+    {
+      "actual_sales": 45525.03,
+      "ensemble_prediction": 46929.176271979406,
+      "linear_reg": 49346.47232664845,
+      "ridge": 49029.59149361231,
+      "random_forest": 45871.20718630175,
+      "gradient_boosting": 45128.00691550955,
+      "xgboost": 45365.3,
+      "error": -1404.1462719794072,
+      "error_percentage": -3.0843390371832973
+    },
+    {
+      "actual_sales": 234757.57,
+      "ensemble_prediction": 246299.41356050983,
+      "linear_reg": 264565.8724160436,
+      "ridge": 264277.760504297,
+      "random_forest": 233202.60749999995,
+      "gradient_boosting": 228844.88193754255,
+      "xgboost": 241364.81,
+      "error": -11541.84356050982,
+      "error_percentage": -4.91649473135619
+    },
+    {
+      "actual_sales": 80404.68,
+      "ensemble_prediction": 80393.82246552965,
+      "linear_reg": 78506.77623355223,
+      "ridge": 78124.86699695555,
+      "random_forest": 80654.86726666667,
+      "gradient_boosting": 83608.98643321959,
+      "xgboost": 80986.42,
+      "error": 10.857534470342216,
+      "error_percentage": 0.0135036100763565
+    },
+    {
+      "actual_sales": 37945.97,
+      "ensemble_prediction": 41873.91893898445,
+      "linear_reg": 48478.796458229575,
+      "ridge": 48210.45178361506,
+      "random_forest": 38077.23288309523,
+      "gradient_boosting": 37079.48035156441,
+      "xgboost": 37794.785,
+      "error": -3927.9489389844457,
+      "error_percentage": -10.3514258272603
+    },
+    {
+      "actual_sales": 190094.04,
+      "ensemble_prediction": 196802.67232106617,
+      "linear_reg": 208725.94343945407,
+      "ridge": 207198.8089556814,
+      "random_forest": 191404.34595,
+      "gradient_boosting": 189149.17939217985,
+      "xgboost": 188002.94,
+      "error": -6708.632321066136,
+      "error_percentage": -3.5291123914595826
+    },
+    {
+      "actual_sales": 40951.16,
+      "ensemble_prediction": 43100.369459420006,
+      "linear_reg": 46412.153599988254,
+      "ridge": 46169.13584551608,
+      "random_forest": 40846.8101259524,
+      "gradient_boosting": 41334.08996004474,
+      "xgboost": 40873.297,
+      "error": -2149.2094594200025,
+      "error_percentage": -5.248226080579896
+    },
+    {
+      "actual_sales": 46755.24,
+      "ensemble_prediction": 47059.23423217099,
+      "linear_reg": 48238.52568081282,
+      "ridge": 48187.25658809705,
+      "random_forest": 47334.206549999966,
+      "gradient_boosting": 45568.00594707912,
+      "xgboost": 46016.664,
+      "error": -303.99423217098956,
+      "error_percentage": -0.6501821660438265
+    },
+    {
+      "actual_sales": 279326.83,
+      "ensemble_prediction": 278456.1142700351,
+      "linear_reg": 272789.8469954987,
+      "ridge": 272407.47347318724,
+      "random_forest": 281866.400775,
+      "gradient_boosting": 282715.85497899563,
+      "xgboost": 282255.53,
+      "error": 870.715729964897,
+      "error_percentage": 0.3117193324983844
+    },
+    {
+      "actual_sales": 349530.51,
+      "ensemble_prediction": 325961.33632405015,
+      "linear_reg": 306039.12575136585,
+      "ridge": 304969.12134160334,
+      "random_forest": 335139.3883357143,
+      "gradient_boosting": 339778.729370661,
+      "xgboost": 343022.53,
+      "error": 23569.17367594986,
+      "error_percentage": 6.7430948090768545
+    },
+    {
+      "actual_sales": 14690.46,
+      "ensemble_prediction": 17685.081697097485,
+      "linear_reg": 23101.473597331205,
+      "ridge": 23014.15993072811,
+      "random_forest": 14542.593292307689,
+      "gradient_boosting": 13779.452333140442,
+      "xgboost": 14212.876,
+      "error": -2994.6216970974856,
+      "error_percentage": -20.384805493480027
+    },
+    {
+      "actual_sales": 18543.14,
+      "ensemble_prediction": 13014.146267570088,
+      "linear_reg": 4055.576350919946,
+      "ridge": 4667.981388267261,
+      "random_forest": 18719.00490000001,
+      "gradient_boosting": 18799.1930929199,
+      "xgboost": 18466.492,
+      "error": 5528.993732429912,
+      "error_percentage": 29.816922767287053
+    },
+    {
+      "actual_sales": 58599.29,
+      "ensemble_prediction": 57343.93045874391,
+      "linear_reg": 54392.34159177356,
+      "ridge": 54629.26789364248,
+      "random_forest": 59426.749617653,
+      "gradient_boosting": 59123.32294450743,
+      "xgboost": 59029.312,
+      "error": 1255.35954125609,
+      "error_percentage": 2.1422777328122744
+    },
+    {
+      "actual_sales": 24495.99,
+      "ensemble_prediction": 24181.844824918942,
+      "linear_reg": 23706.38272869648,
+      "ridge": 24042.361452241195,
+      "random_forest": 24310.941883333344,
+      "gradient_boosting": 24200.401595926167,
+      "xgboost": 24636.238,
+      "error": 314.14517508105564,
+      "error_percentage": 1.2824351050153746
+    },
+    {
+      "actual_sales": 26618.45,
+      "ensemble_prediction": 30474.166521992964,
+      "linear_reg": 36788.78221618187,
+      "ridge": 36392.86894774344,
+      "random_forest": 26206.749372222224,
+      "gradient_boosting": 26696.229737816484,
+      "xgboost": 26542.424,
+      "error": -3855.716521992963,
+      "error_percentage": -14.485127879320403
+    },
+    {
+      "actual_sales": 35106.7,
+      "ensemble_prediction": 30583.00391726196,
+      "linear_reg": 22895.979231315447,
+      "ridge": 22990.104746516023,
+      "random_forest": 35297.532902447536,
+      "gradient_boosting": 35559.98640316264,
+      "xgboost": 35851.285,
+      "error": 4523.696082738035,
+      "error_percentage": 12.885563390287423
+    },
+    {
+      "actual_sales": 35426.19,
+      "ensemble_prediction": 31313.334351572525,
+      "linear_reg": 24217.62718781221,
+      "ridge": 24287.681209019614,
+      "random_forest": 35213.004492447515,
+      "gradient_boosting": 36505.15899481415,
+      "xgboost": 36047.28,
+      "error": 4112.855648427478,
+      "error_percentage": 11.60964712385802
+    },
+    {
+      "actual_sales": 206481.97,
+      "ensemble_prediction": 211113.5143570224,
+      "linear_reg": 215090.7029377057,
+      "ridge": 216369.77225501853,
+      "random_forest": 207976.1459999998,
+      "gradient_boosting": 208892.6008188454,
+      "xgboost": 207431.78,
+      "error": -4631.544357022416,
+      "error_percentage": -2.2430744713557393
+    }
+  ],
+  "by_category": {
+    "RING": [
+      {
+        "category": "RING",
+        "net_weight": 10.397,
+        "purity": 18.0,
+        "actual_sales": 266606.7,
+        "predicted_sales": 268811.1924798226,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "RING",
+        "net_weight": 8.491,
+        "purity": 14.04,
+        "actual_sales": 183339.11,
+        "predicted_sales": 184207.8802007793,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "RING",
+        "net_weight": 2.656,
+        "purity": 18.0,
+        "actual_sales": 12748.74,
+        "predicted_sales": 13401.044507372822,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "RING",
+        "net_weight": 5.891,
+        "purity": 18.0,
+        "actual_sales": 149682.88,
+        "predicted_sales": 159229.30921870773,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "RING",
+        "net_weight": 2.789,
+        "purity": 21.984,
+        "actual_sales": 217268.68,
+        "predicted_sales": 219573.02869253716,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "RING",
+        "net_weight": 2.669,
+        "purity": 21.984,
+        "actual_sales": 47910.38,
+        "predicted_sales": 46585.89668498558,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "RING",
+        "net_weight": 2.77,
+        "purity": 21.984,
+        "actual_sales": 42057.86,
+        "predicted_sales": 42162.46132632849,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "RING",
+        "net_weight": 8.314,
+        "purity": 14.04,
+        "actual_sales": 45525.03,
+        "predicted_sales": 46929.176271979406,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "RING",
+        "net_weight": 3.85,
+        "purity": 18.0,
+        "actual_sales": 80404.68,
+        "predicted_sales": 80393.82246552965,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "RING",
+        "net_weight": 5.635,
+        "purity": 21.984,
+        "actual_sales": 18543.14,
+        "predicted_sales": 13014.146267570088,
+        "date": "2025-08-06"
+      }
+    ],
+    "CHAIN": [
+      {
+        "category": "CHAIN",
+        "net_weight": 41.137,
+        "purity": 21.984,
+        "actual_sales": 119101.63,
+        "predicted_sales": 119616.19285238262,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 29.242,
+        "purity": 21.984,
+        "actual_sales": 29684.47,
+        "predicted_sales": 24152.84584205046,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 44.919,
+        "purity": 14.04,
+        "actual_sales": 54610.26,
+        "predicted_sales": 53336.216771979656,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 51.91,
+        "purity": 21.984,
+        "actual_sales": 46923.94,
+        "predicted_sales": 45057.33399773629,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 46.707,
+        "purity": 18.0,
+        "actual_sales": 35803.68,
+        "predicted_sales": 36678.54830071186,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 61.981,
+        "purity": 21.984,
+        "actual_sales": 154458.37,
+        "predicted_sales": 152480.58146320982,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 23.21,
+        "purity": 21.984,
+        "actual_sales": 279326.83,
+        "predicted_sales": 278456.1142700351,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 41.097,
+        "purity": 21.984,
+        "actual_sales": 163786.0,
+        "predicted_sales": 159891.32573832967,
+        "date": "2025-08-08"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 9.415,
+        "purity": 21.984,
+        "actual_sales": 81567.17,
+        "predicted_sales": 83538.15205727001,
+        "date": "2025-08-09"
+      },
+      {
+        "category": "CHAIN",
+        "net_weight": 33.691,
+        "purity": 21.984,
+        "actual_sales": 47809.7,
+        "predicted_sales": 48638.77969482359,
+        "date": "2025-08-10"
+      }
+    ],
+    "BANGLE": [
+      {
+        "category": "BANGLE",
+        "net_weight": 24.378,
+        "purity": 18.0,
+        "actual_sales": 42206.66,
+        "predicted_sales": 43528.075159722765,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 33.711,
+        "purity": 21.984,
+        "actual_sales": 133835.83,
+        "predicted_sales": 133473.46364409145,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 30.053,
+        "purity": 18.0,
+        "actual_sales": 48171.14,
+        "predicted_sales": 49368.56037510526,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 43.515,
+        "purity": 21.984,
+        "actual_sales": 292468.68,
+        "predicted_sales": 290707.01618051797,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 23.735,
+        "purity": 14.04,
+        "actual_sales": 76060.92,
+        "predicted_sales": 75540.79934176788,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 31.132,
+        "purity": 21.984,
+        "actual_sales": 37945.97,
+        "predicted_sales": 41873.91893898445,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 6.347,
+        "purity": 21.984,
+        "actual_sales": 349530.51,
+        "predicted_sales": 325961.33632405015,
+        "date": "2025-08-06"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 32.829,
+        "purity": 21.984,
+        "actual_sales": 60601.16,
+        "predicted_sales": 60284.47300511322,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 15.392,
+        "purity": 18.0,
+        "actual_sales": 57822.28,
+        "predicted_sales": 59998.05600907648,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "BANGLE",
+        "net_weight": 16.253,
+        "purity": 21.984,
+        "actual_sales": 193140.48,
+        "predicted_sales": 182485.77144832996,
+        "date": "2025-08-08"
+      }
+    ],
+    "BRACELET": [
+      {
+        "category": "BRACELET",
+        "net_weight": 33.947,
+        "purity": 21.984,
+        "actual_sales": 327173.47,
+        "predicted_sales": 315265.897214569,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 19.191,
+        "purity": 21.984,
+        "actual_sales": 113090.85,
+        "predicted_sales": 115904.16273889628,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 16.812,
+        "purity": 21.984,
+        "actual_sales": 134403.21,
+        "predicted_sales": 133040.65401940586,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 18.607,
+        "purity": 21.984,
+        "actual_sales": 58488.18,
+        "predicted_sales": 61493.76216818729,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 28.042,
+        "purity": 14.04,
+        "actual_sales": 61571.17,
+        "predicted_sales": 60326.47301788039,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 33.908,
+        "purity": 21.984,
+        "actual_sales": 359644.19,
+        "predicted_sales": 356476.55737001734,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 23.974,
+        "purity": 18.0,
+        "actual_sales": 138656.71,
+        "predicted_sales": 137633.33577668187,
+        "date": "2025-08-10"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 27.793,
+        "purity": 18.0,
+        "actual_sales": 32432.32,
+        "predicted_sales": 36115.10970814423,
+        "date": "2025-08-10"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 24.824,
+        "purity": 18.0,
+        "actual_sales": 305796.62,
+        "predicted_sales": 296191.4774975178,
+        "date": "2025-08-13"
+      },
+      {
+        "category": "BRACELET",
+        "net_weight": 26.543,
+        "purity": 21.984,
+        "actual_sales": 37464.29,
+        "predicted_sales": 37139.308964493575,
+        "date": "2025-08-15"
+      }
+    ],
+    "EARRING": [
+      {
+        "category": "EARRING",
+        "net_weight": 10.376,
+        "purity": 21.984,
+        "actual_sales": 26361.44,
+        "predicted_sales": 27931.169427920988,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 7.296,
+        "purity": 21.984,
+        "actual_sales": 141906.87,
+        "predicted_sales": 140743.5423343835,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 11.423,
+        "purity": 18.0,
+        "actual_sales": 104930.28,
+        "predicted_sales": 106416.84166231152,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 10.966,
+        "purity": 21.984,
+        "actual_sales": 55919.51,
+        "predicted_sales": 54654.62813959159,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 2.376,
+        "purity": 18.0,
+        "actual_sales": 234757.57,
+        "predicted_sales": 246299.41356050983,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 7.768,
+        "purity": 21.984,
+        "actual_sales": 190094.04,
+        "predicted_sales": 196802.67232106617,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 2.133,
+        "purity": 18.0,
+        "actual_sales": 24495.99,
+        "predicted_sales": 24181.844824918942,
+        "date": "2025-08-06"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 12.825,
+        "purity": 21.984,
+        "actual_sales": 181436.6,
+        "predicted_sales": 175513.0545580932,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 10.173,
+        "purity": 21.984,
+        "actual_sales": 243860.71,
+        "predicted_sales": 256363.47940903943,
+        "date": "2025-08-08"
+      },
+      {
+        "category": "EARRING",
+        "net_weight": 9.216,
+        "purity": 21.984,
+        "actual_sales": 107244.53,
+        "predicted_sales": 114137.4278410318,
+        "date": "2025-08-09"
+      }
+    ],
+    "NECKLACE": [
+      {
+        "category": "NECKLACE",
+        "net_weight": 57.654,
+        "purity": 14.04,
+        "actual_sales": 23864.35,
+        "predicted_sales": 26206.93083050254,
+        "date": "2025-08-03"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 66.509,
+        "purity": 14.04,
+        "actual_sales": 14690.46,
+        "predicted_sales": 17685.081697097485,
+        "date": "2025-08-06"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 13.813,
+        "purity": 18.0,
+        "actual_sales": 26618.45,
+        "predicted_sales": 30474.166521992964,
+        "date": "2025-08-06"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 60.3,
+        "purity": 21.984,
+        "actual_sales": 206481.97,
+        "predicted_sales": 211113.5143570224,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 9.92,
+        "purity": 21.984,
+        "actual_sales": 92361.87,
+        "predicted_sales": 95066.37135452007,
+        "date": "2025-08-11"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 67.833,
+        "purity": 18.0,
+        "actual_sales": 14217.32,
+        "predicted_sales": 7678.608247345734,
+        "date": "2025-08-11"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 17.81,
+        "purity": 21.984,
+        "actual_sales": 56817.96,
+        "predicted_sales": 58953.095868112505,
+        "date": "2025-08-12"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 58.25,
+        "purity": 21.984,
+        "actual_sales": 158435.71,
+        "predicted_sales": 167162.52423249505,
+        "date": "2025-08-16"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 63.878,
+        "purity": 21.984,
+        "actual_sales": 17855.09,
+        "predicted_sales": 21274.24607200917,
+        "date": "2025-08-17"
+      },
+      {
+        "category": "NECKLACE",
+        "net_weight": 30.84,
+        "purity": 18.0,
+        "actual_sales": 126870.57,
+        "predicted_sales": 129701.98728236405,
+        "date": "2025-08-17"
+      }
+    ],
+    "PENDANT": [
+      {
+        "category": "PENDANT",
+        "net_weight": 8.873,
+        "purity": 21.984,
+        "actual_sales": 64055.21,
+        "predicted_sales": 65742.51194528019,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 5.906,
+        "purity": 14.04,
+        "actual_sales": 35836.49,
+        "predicted_sales": 39001.047653679176,
+        "date": "2025-08-01"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 9.05,
+        "purity": 14.04,
+        "actual_sales": 66669.09,
+        "predicted_sales": 68268.1394314467,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 6.821,
+        "purity": 21.984,
+        "actual_sales": 59220.19,
+        "predicted_sales": 59782.70983763802,
+        "date": "2025-08-02"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 9.465,
+        "purity": 21.984,
+        "actual_sales": 131418.65,
+        "predicted_sales": 131803.7212314101,
+        "date": "2025-08-04"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 7.411,
+        "purity": 21.984,
+        "actual_sales": 40951.16,
+        "predicted_sales": 43100.369459420006,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 3.217,
+        "purity": 18.0,
+        "actual_sales": 46755.24,
+        "predicted_sales": 47059.23423217099,
+        "date": "2025-08-05"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 11.135,
+        "purity": 21.984,
+        "actual_sales": 35106.7,
+        "predicted_sales": 30583.00391726196,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 10.379,
+        "purity": 21.984,
+        "actual_sales": 35426.19,
+        "predicted_sales": 31313.334351572525,
+        "date": "2025-08-07"
+      },
+      {
+        "category": "PENDANT",
+        "net_weight": 9.548,
+        "purity": 21.984,
+        "actual_sales": 18396.45,
+        "predicted_sales": 16401.267559204513,
+        "date": "2025-08-07"
+      }
+    ]
+  },
+  "metadata": {
+    "total_predictions": 949,
+    "model_accuracy": 99.62,
+    "description": "Precomputed predictions from ensemble ML model"
+  }
+}

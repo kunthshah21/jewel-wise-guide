@@ -93,109 +93,9 @@ interface DashboardCustomization {
   chartColors: typeof DEFAULT_CHART_COLORS;
 }
 
-const stockData = [
-  { name: "Gold", value: 45 },
-  { name: "Silver", value: 30 },
-  { name: "Diamond", value: 15 },
-  { name: "Platinum", value: 10 },
-];
-
-// Analytics data
-const categoryData = [
-  { name: "Gold", value: 45 },
-  { name: "Silver", value: 30 },
-  { name: "Diamond", value: 15 },
-  { name: "Platinum", value: 10 },
-];
-
-const performanceData = [
-  { month: "Jan", revenue: 450, profit: 120 },
-  { month: "Feb", revenue: 520, profit: 145 },
-  { month: "Mar", revenue: 480, profit: 132 },
-  { month: "Apr", revenue: 610, profit: 178 },
-  { month: "May", revenue: 550, profit: 156 },
-  { month: "Jun", revenue: 670, profit: 198 },
-];
+// Dummy data removed - now using real data from JSON files
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
-
-// Simplified inventory data for popup
-const topInventoryItems = [
-  {
-    category: "Gold Chains",
-    icon: "🔗",
-    stockCount: 156,
-    sales30d: 48,
-    ageing: 12,
-    deadstockRisk: "low" as const,
-    reorderSuggestion: true,
-    confidence: 92,
-    trend: "rising" as const,
-  },
-  {
-    category: "Diamond Earrings",
-    icon: "💎",
-    stockCount: 89,
-    sales30d: 12,
-    ageing: 45,
-    deadstockRisk: "medium" as const,
-    reorderSuggestion: false,
-    confidence: 78,
-    trend: "falling" as const,
-  },
-  {
-    category: "Silver Bangles",
-    icon: "⚪",
-    stockCount: 234,
-    sales30d: 18,
-    ageing: 67,
-    deadstockRisk: "high" as const,
-    reorderSuggestion: false,
-    confidence: 85,
-    trend: "falling" as const,
-  },
-  {
-    category: "Gold Necklaces",
-    icon: "📿",
-    stockCount: 112,
-    sales30d: 35,
-    ageing: 18,
-    deadstockRisk: "low" as const,
-    reorderSuggestion: true,
-    confidence: 88,
-    trend: "rising" as const,
-  },
-];
-
-// Market trends data for popup
-const trendingCategories = [
-  { name: "Lightweight Gold Chains", trend: "up", change: "+24%", color: "text-success" },
-  { name: "Diamond Studs", trend: "up", change: "+18%", color: "text-success" },
-  { name: "Temple Jewellery", trend: "up", change: "+15%", color: "text-success" },
-  { name: "Silver Anklets", trend: "down", change: "-8%", color: "text-destructive" },
-];
-
-const marketTrendData = [
-  { month: "Jan", gold: 45, silver: 30, diamond: 15 },
-  { month: "Feb", gold: 52, silver: 28, diamond: 18 },
-  { month: "Mar", gold: 48, silver: 32, diamond: 22 },
-  { month: "Apr", gold: 61, silver: 35, diamond: 25 },
-];
-
-// Keywords data for popup
-const keywordSampleData = [
-  { month: "Jan", searches: 45 },
-  { month: "Feb", searches: 52 },
-  { month: "Mar", searches: 48 },
-  { month: "Apr", searches: 61 },
-];
-
-const relatedSearches = [
-  "gold chain designs",
-  "22kt gold chain price",
-  "lightweight gold chains for women",
-  "gold chain with pendant",
-];
 
 function DashboardContent() {
   const [inventoryOpen, setInventoryOpen] = useState(false);
@@ -220,6 +120,84 @@ function DashboardContent() {
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
+
+  // Fetch analytics data
+  const { data: analyticsData } = useQuery({
+    queryKey: ['analytics-data'],
+    queryFn: () => apiService.fetchAnalyticsData(),
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  // Fetch market trends
+  const { data: marketTrendsData } = useQuery({
+    queryKey: ['market-trends'],
+    queryFn: () => apiService.fetchMarketTrends(),
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  // Transform categories for stock distribution chart
+  const stockData = categories?.map(cat => ({
+    name: cat.category,
+    value: Math.round(cat.stockValue / 100000), // Convert to lakhs
+  })) || [];
+
+  // Transform categories for inventory popup
+  const topInventoryItems = categories?.slice(0, 4).map(cat => ({
+    category: cat.category,
+    icon: cat.category.includes('BANGLE') ? '⚪' : cat.category.includes('CHAIN') ? '🔗' : 
+          cat.category.includes('EARRING') ? '💎' : cat.category.includes('NECKLACE') ? '📿' : 
+          cat.category.includes('RING') ? '💍' : cat.category.includes('BRACELET') ? '🔗' : '💎',
+    stockCount: cat.itemCount,
+    sales30d: Math.round(cat.avgDaysToSell),
+    ageing: Math.round(cat.riskScore),
+    deadstockRisk: (cat.riskScore > 45 ? 'high' : cat.riskScore > 35 ? 'medium' : 'low') as 'low' | 'medium' | 'high',
+    reorderSuggestion: cat.trend === 'rising',
+    confidence: Math.round(100 - cat.riskScore),
+    trend: cat.trend,
+  })) || [];
+
+  // Transform market data for trending categories
+  const trendingCategories = marketTrendsData?.slice(0, 4).map(trend => ({
+    name: trend.category,
+    trend: trend.risk < 35 ? 'up' : 'down',
+    change: `${trend.risk < 35 ? '+' : '-'}${Math.round(Math.abs(50 - trend.risk))}%`,
+    color: trend.risk < 35 ? 'text-success' : 'text-destructive',
+  })) || [];
+
+  // Transform market data for chart (using categories)
+  const marketTrendData = categories?.slice(0, 3).map((cat, idx) => ({
+    month: ['Jan', 'Feb', 'Mar', 'Apr'][idx] || 'N/A',
+    gold: cat.category === 'CHAIN' ? Math.round(cat.stockValue / 10000) : 0,
+    silver: cat.category === 'BANGLE' ? Math.round(cat.stockValue / 10000) : 0,
+    diamond: cat.category === 'EARRING' ? Math.round(cat.stockValue / 10000) : 0,
+  })).filter(d => d.month !== 'N/A') || [];
+
+  // Performance data from analytics
+  const performanceData = analyticsData?.predictions_sample?.slice(0, 6).map((pred: any, idx: number) => ({
+    month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][idx],
+    revenue: Math.round(pred.ensemble_prediction / 1000),
+    profit: Math.round(pred.actual_sales / 1000),
+  })) || [];
+
+  // Category data for pie charts (using stock distribution)
+  const categoryData = stockData;
+
+  // Keywords sample data (static for now)
+  const keywordSampleData = [
+    { month: "Jan", searches: 45 },
+    { month: "Feb", searches: 52 },
+    { month: "Mar", searches: 48 },
+    { month: "Apr", searches: 61 },
+  ];
+
+  const relatedSearches = [
+    "gold chain designs",
+    "22kt gold chain price",
+    "lightweight gold chains for women",
+    "gold chain with pendant",
+  ];
   
   // Load customization from localStorage with migration support
   const loadCustomization = (): DashboardCustomization => {
@@ -934,27 +912,36 @@ function DashboardContent() {
               AI Recommendations
             </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <AISuggestionCard
-                title="Restock Gold Chains"
-                reason="Sales velocity is 3x higher than average. Current stock will deplete in 8 days based on trend analysis."
-                confidence={92}
-                impact="high"
-                category="Gold"
-              />
-              <AISuggestionCard
-                title="Review Diamond Earrings Pricing"
-                reason="Low turnover rate detected. Competitor analysis shows 12% price gap. Consider promotional strategy."
-                confidence={78}
-                impact="medium"
-                category="Diamond"
-              />
-              <AISuggestionCard
-                title="Clear Silver Bangles Stock"
-                reason="Ageing inventory with declining market interest. Recommend clearance sale to free up capital."
-                confidence={85}
-                impact="medium"
-                category="Silver"
-              />
+              {categories?.slice(0, 3).map((cat, idx) => {
+                const isLowRisk = cat.riskScore < 35;
+                const isHighRisk = cat.riskScore > 45;
+                
+                let title, reason, impact;
+                if (isLowRisk) {
+                  title = `Restock ${cat.category}`;
+                  reason = `Sales velocity is high with low risk score (${cat.riskScore.toFixed(0)}). Strong demand detected based on trend analysis.`;
+                  impact = "high";
+                } else if (isHighRisk) {
+                  title = `Review ${cat.category} Strategy`;
+                  reason = `High risk score detected (${cat.riskScore.toFixed(0)}). Consider promotional pricing or clearance to improve turnover.`;
+                  impact = "medium";
+                } else {
+                  title = `Monitor ${cat.category}`;
+                  reason = `Moderate risk score (${cat.riskScore.toFixed(0)}). Keep tracking sales velocity and market trends.`;
+                  impact = "medium";
+                }
+                
+                return (
+                  <AISuggestionCard
+                    key={cat.category}
+                    title={title}
+                    reason={reason}
+                    confidence={Math.round(100 - cat.riskScore)}
+                    impact={impact as "high" | "medium" | "low"}
+                    category={cat.category}
+                  />
+                );
+              })}
             </div>
           </div>
         );
@@ -1011,16 +998,22 @@ function DashboardContent() {
           </div>
           
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Welcome back, Raj Store
+            Welcome back to JewelWise
           </h1>
           
           <div className="space-y-3 max-w-3xl">
             <p className="text-lg md:text-xl font-bold text-white leading-relaxed">
-              Your gold chain inventory is moving faster than expected. Consider restocking by next week.
+              {categories && categories.length > 0 ? (
+                categories[0].trend === 'rising' 
+                  ? `Your ${categories[0].category} inventory is performing well with strong demand.`
+                  : `Monitor your ${categories[0].category} inventory - risk score is ${Math.round(categories[0].riskScore)}%.`
+              ) : 'Loading inventory insights...'}
             </p>
             <p className="text-base text-white/90 leading-relaxed">
-              Based on current sales velocity and market trends, your gold chain stock will deplete in 8 days. 
-              Diamond earrings are showing low movement—review pricing strategy to improve turnover.
+              {kpis ? (
+                `You have ${kpis.totalItems} items in inventory worth ₹${(kpis.totalStockValue / 100000).toFixed(1)}L. 
+                ${kpis.fastMovingItems} items are fast-moving, while ${kpis.ageingStock} items need attention.`
+              ) : 'Analyzing your inventory data...'}
             </p>
           </div>
         </div>

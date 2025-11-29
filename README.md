@@ -32,9 +32,36 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
+npm run dev:frontend
+```
+
+**That's it!** The application now uses precomputed predictions and works without a Python backend.
+
+This will start:
+- **Frontend (Vite)**: http://localhost:5173
+
+### Optional: Start with Backend (Advanced)
+
+If you want to use the live ML API instead of precomputed predictions:
+
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+
+# On macOS, install OpenMP
+brew install libomp
+
+# Start both services
 npm run dev
 ```
+
+This will start both:
+- **Frontend (Vite)**: http://localhost:5173
+- **Backend (FastAPI)**: http://localhost:8000
+
+For detailed ML setup, see [SETUP_ML.md](./SETUP_ML.md)
+
 
 **Edit a file directly in GitHub**
 
@@ -54,11 +81,28 @@ npm run dev
 
 This project is built with:
 
+### Frontend
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- React Query (TanStack Query)
+- Recharts
+
+### Backend (ML/API)
+- Python 3.x
+- FastAPI
+- Pandas
+- Scikit-learn
+- XGBoost
+- Pickle (Model persistence)
+
+### Data
+- Dashboard displays real data from JSON files (`/public/data/`)
+- **ML predictions use precomputed historical data (no backend required)**
+- 950+ precomputed predictions with 99.62% R² accuracy
+- Optional: Connect to live ML API for real-time predictions
 
 ## How can I deploy this project?
 

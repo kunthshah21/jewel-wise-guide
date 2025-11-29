@@ -70,18 +70,38 @@ class APIService {
     this.baseUrl = API_BASE_URL;
   }
 
+  // Fetch from static JSON files (no API required)
   async fetchKPIs(): Promise<KPIData> {
-    const response = await fetch(`${this.baseUrl}/api/kpis/summary`);
+    const response = await fetch('/data/kpis.json');
     if (!response.ok) throw new Error('Failed to fetch KPIs');
     return response.json();
   }
 
   async fetchInventoryCategories(): Promise<InventoryCategory[]> {
-    const response = await fetch(`${this.baseUrl}/api/inventory/categories`);
+    const response = await fetch('/data/inventory.json');
     if (!response.ok) throw new Error('Failed to fetch inventory');
     return response.json();
   }
 
+  async fetchMarketTrends(): Promise<MarketTrend[]> {
+    const response = await fetch('/data/market.json');
+    if (!response.ok) throw new Error('Failed to fetch market trends');
+    return response.json();
+  }
+
+  async fetchAnalyticsData(): Promise<any> {
+    const response = await fetch('/data/analytics.json');
+    if (!response.ok) throw new Error('Failed to fetch analytics');
+    return response.json();
+  }
+
+  async fetchPrecomputedPredictions(): Promise<any> {
+    const response = await fetch('/data/predictions.json');
+    if (!response.ok) throw new Error('Failed to fetch precomputed predictions');
+    return response.json();
+  }
+
+  // ML Prediction endpoints (require Python backend)
   async fetchAnalyticsPerformance(): Promise<AnalyticsPerformance> {
     const response = await fetch(`${this.baseUrl}/api/analytics/performance`);
     if (!response.ok) throw new Error('Failed to fetch analytics');
@@ -95,12 +115,6 @@ class APIService {
   }>> {
     const response = await fetch(`${this.baseUrl}/api/analytics/predictions?limit=${limit}`);
     if (!response.ok) throw new Error('Failed to fetch prediction comparison');
-    return response.json();
-  }
-
-  async fetchMarketTrends(): Promise<MarketTrend[]> {
-    const response = await fetch(`${this.baseUrl}/api/market/trends`);
-    if (!response.ok) throw new Error('Failed to fetch market trends');
     return response.json();
   }
 
