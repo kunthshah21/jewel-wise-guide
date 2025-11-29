@@ -1,24 +1,7 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { useState } from "react";
-import { Package, TrendingDown, AlertTriangle, TrendingUp, Sparkles, RefreshCw } from "lucide-react";
-import { KPICard } from "@/components/KPICard";
-import { AISuggestionCard } from "@/components/AISuggestionCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-=======
 import { Package, TrendingDown, AlertTriangle, TrendingUp, Sparkles } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
 import { AISuggestionCard } from "@/components/AISuggestionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
-import { Package, TrendingDown, AlertTriangle, TrendingUp, Sparkles } from "lucide-react";
-import { KPICard } from "@/components/KPICard";
-import { AISuggestionCard } from "@/components/AISuggestionCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 import {
   BarChart,
   Bar,
@@ -28,73 +11,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiService } from "@/services/apiService";
-import { useFilter } from "@/contexts/FilterContext";
-import Inventory from "@/pages/Inventory";
-import Market from "@/pages/Market";
-import Keywords from "@/pages/Keywords";
-
-export default function Dashboard() {
-  const queryClient = useQueryClient();
-  const { timePeriod } = useFilter();
-
-  // State for managing modal visibility
-  const [inventoryOpen, setInventoryOpen] = useState(false);
-  const [marketOpen, setMarketOpen] = useState(false);
-  const [keywordsOpen, setKeywordsOpen] = useState(false);
-
-  // Convert time period string to number
-  const timePeriodDays = parseInt(timePeriod);
-
-  // Fetch real data from API with time period filter
-  const { data: kpis, isLoading, error, refetch: refetchKPIs } = useQuery({
-    queryKey: ['kpis', timePeriodDays],
-    queryFn: () => apiService.fetchKPIs(timePeriodDays),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
-
-  // Fetch inventory categories for stock distribution chart with time period filter
-  const { data: categories, refetch: refetchCategories } = useQuery({
-    queryKey: ['inventory-categories', timePeriodDays],
-    queryFn: () => apiService.fetchInventoryCategories(timePeriodDays),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const handleRefresh = async () => {
-    await Promise.all([refetchKPIs(), refetchCategories()]);
-  };
-
-  // Transform category data for the chart
-  const stockData = categories?.map(cat => ({
-    name: cat.category,
-    value: Math.round(cat.stockValue / 1000000) // Convert to Millions for better visualization
-  })) || [];
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !kpis) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center text-destructive">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
-          <p>Error loading data: {error?.message || 'No data available'}</p>
-        </div>
-      </div>
-    );
-  }
-=======
 
 const stockData = [
   { name: "Gold", value: 45 },
@@ -104,18 +20,6 @@ const stockData = [
 ];
 
 export default function Dashboard() {
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
-
-const stockData = [
-  { name: "Gold", value: 45 },
-  { name: "Silver", value: 30 },
-  { name: "Diamond", value: 15 },
-  { name: "Platinum", value: 10 },
-];
-
-export default function Dashboard() {
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
   return (
     <div className="space-y-6">
       {/* AI Daily Suggestion - Hero Section */}

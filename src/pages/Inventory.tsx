@@ -1,18 +1,6 @@
 import { InventoryCard } from "@/components/InventoryCard";
 import { Input } from "@/components/ui/input";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { Button } from "@/components/ui/button";
-import { Search, AlertTriangle, Download } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { apiService } from "@/services/apiService";
-import { useFilter } from "@/contexts/FilterContext";
-=======
 import { Search } from "lucide-react";
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
-import { Search } from "lucide-react";
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 
 const inventoryItems = [
   {
@@ -84,66 +72,6 @@ const inventoryItems = [
 ];
 
 export default function Inventory() {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  const { timePeriod } = useFilter();
-  const timePeriodDays = parseInt(timePeriod);
-
-  const { data: inventory, isLoading, error } = useQuery({
-    queryKey: ['inventory', timePeriodDays],
-    queryFn: () => apiService.fetchInventoryCategories(timePeriodDays),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading inventory data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !inventory) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center text-destructive">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
-          <p>Error loading inventory: {error?.message || 'No data available'}</p>
-        </div>
-      </div>
-    );
-  }
-  const handleExport = () => {
-    if (!inventory) return;
-    
-    const csv = [
-      ['Category', 'Stock Value (₹)', 'Items', 'Avg Days to Sell', 'Risk Score (%)', 'Trend'],
-      ...inventory.map(item => [
-        item.category,
-        item.stockValue.toFixed(2),
-        item.itemCount,
-        item.avgDaysToSell.toFixed(1),
-        item.riskScore.toFixed(1),
-        item.trend
-      ])
-    ].map(row => row.join(',')).join('\n');
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `inventory_${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-=======
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
   return (
     <div className="space-y-6">
       {/* Header */}

@@ -4,18 +4,8 @@ import {
   Package, 
   TrendingUp, 
   Search, 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  Sparkles,
-  Calculator
-=======
   BarChart3,
   Sparkles
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
-  BarChart3,
-  Sparkles
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

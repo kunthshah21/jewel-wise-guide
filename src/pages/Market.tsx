@@ -17,36 +17,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { analyzeMarketOverview, isGeminiConfigured } from "@/services/geminiService";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { apiService } from "@/services/apiService";
-import { useFilter } from "@/contexts/FilterContext";
-
-export default function Market() {
-  const { timePeriod } = useFilter();
-  const timePeriodDays = parseInt(timePeriod);
-
-  // Fetch real market trends from API with time period filter
-  const { data: marketTrends, isLoading: trendsLoading, error: trendsError } = useQuery({
-    queryKey: ['market-trends', timePeriodDays],
-    queryFn: () => apiService.fetchMarketTrends(timePeriodDays),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Optional: Keep Gemini AI insights as supplementary
-  const { data: marketData, isLoading: aiLoading, error: aiError, refetch, isFetching } = useQuery({
-=======
 
 export default function Market() {
   // Use React Query with caching strategy
   const { data: marketData, isLoading, error, refetch, isFetching } = useQuery({
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
-
-export default function Market() {
-  // Use React Query with caching strategy
-  const { data: marketData, isLoading, error, refetch, isFetching } = useQuery({
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
     queryKey: ["market-overview"],
     queryFn: analyzeMarketOverview,
     staleTime: Infinity, // Data never becomes stale automatically
@@ -77,24 +51,7 @@ export default function Market() {
       </div>
     );
   }
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-  if (error || !marketTrends) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center text-destructive">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4" />
-          <p>Error loading market data: {error?.message || 'No data available'}</p>
-        </div>
-      </div>
-    );
-  }
-
-=======
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
   return (
     <div className="space-y-6">
       {/* Header with Refresh Button */}
@@ -117,13 +74,6 @@ export default function Market() {
         </Button>
       </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-      {/* Real Market Trends */}
-      {marketTrends && marketTrends.length > 0 && (
-=======
-=======
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
       {/* Error State */}
       {error && (
         <Alert variant="destructive">
@@ -163,10 +113,6 @@ export default function Market() {
 
       {/* Market Data Display */}
       {marketData && !isLoading && (
-<<<<<<< HEAD
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
-=======
->>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
         <>
           {/* Trending Categories */}
           <Card>
@@ -175,31 +121,27 @@ export default function Market() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {marketTrends.map((category) => {
-                  const isRising = category.risk < 40;
-                  const salesInCr = category.total_sales / 10000000;
-                  return (
-                    <div
-                      key={category.category}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        {isRising ? (
-                          <TrendingUp className="h-5 w-5 text-success" />
-                        ) : (
-                          <TrendingDown className="h-5 w-5 text-destructive" />
-                        )}
-                        <div>
-                          <span className="font-medium text-foreground">{category.category}</span>
-                          <p className="text-xs text-muted-foreground">₹{salesInCr.toFixed(2)}Cr sales</p>
-                        </div>
+                {marketData.trendingCategories.map((category) => (
+                  <div
+                    key={category.name}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {category.trend === "rising" ? (
+                        <TrendingUp className="h-5 w-5 text-success" />
+                      ) : (
+                        <TrendingDown className="h-5 w-5 text-destructive" />
+                      )}
+                      <div>
+                        <span className="font-medium text-foreground">{category.name}</span>
+                        <p className="text-xs text-muted-foreground">{category.description}</p>
                       </div>
-                      <Badge variant={isRising ? "default" : "destructive"}>
-                        {isRising ? `Low Risk (${category.risk.toFixed(0)}%)` : `${category.risk.toFixed(0)}% Risk`}
-                      </Badge>
                     </div>
-                  );
-                })}
+                    <Badge variant={category.trend === "rising" ? "default" : "secondary"}>
+                      {category.searchGrowth}
+                    </Badge>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
