@@ -23,6 +23,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 import { apiService } from "@/services/apiService";
+import { useFilter } from "@/contexts/FilterContext";
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--primary))", "hsl(var(--accent))"];
 
@@ -37,16 +38,20 @@ const availableModules = [
 
 export default function Analytics() {
   const [modules, setModules] = useState(availableModules);
+  const { timePeriod } = useFilter();
+
+  // Convert time period string to number
+  const timePeriodDays = parseInt(timePeriod);
 
   const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useQuery({
-    queryKey: ['analytics'],
+    queryKey: ['analytics', timePeriodDays],
     queryFn: () => apiService.fetchAnalyticsPerformance(),
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: inventory, isLoading: inventoryLoading, error: inventoryError } = useQuery({
-    queryKey: ['inventory-analytics'],
-    queryFn: () => apiService.fetchInventoryCategories(),
+    queryKey: ['inventory-analytics', timePeriodDays],
+    queryFn: () => apiService.fetchInventoryCategories(timePeriodDays),
     staleTime: 5 * 60 * 1000,
   });
 

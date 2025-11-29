@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Search, AlertTriangle, Download } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
+import { useFilter } from "@/contexts/FilterContext";
 
 // Category icon mapping
 const categoryIcons: Record<string, string> = {
@@ -24,9 +25,12 @@ const categoryIcons: Record<string, string> = {
 };
 
 export default function Inventory() {
+  const { timePeriod } = useFilter();
+  const timePeriodDays = parseInt(timePeriod);
+
   const { data: inventory, isLoading, error } = useQuery({
-    queryKey: ['inventory'],
-    queryFn: () => apiService.fetchInventoryCategories(),
+    queryKey: ['inventory', timePeriodDays],
+    queryFn: () => apiService.fetchInventoryCategories(timePeriodDays),
     staleTime: 5 * 60 * 1000,
   });
 

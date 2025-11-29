@@ -21,12 +21,16 @@ import {
 } from "recharts";
 import { analyzeMarketOverview, isGeminiConfigured } from "@/services/geminiService";
 import { apiService } from "@/services/apiService";
+import { useFilter } from "@/contexts/FilterContext";
 
 export default function Market() {
-  // Fetch real market trends from API
+  const { timePeriod } = useFilter();
+  const timePeriodDays = parseInt(timePeriod);
+
+  // Fetch real market trends from API with time period filter
   const { data: marketTrends, isLoading: trendsLoading, error: trendsError } = useQuery({
-    queryKey: ['market-trends'],
-    queryFn: () => apiService.fetchMarketTrends(),
+    queryKey: ['market-trends', timePeriodDays],
+    queryFn: () => apiService.fetchMarketTrends(timePeriodDays),
     staleTime: 5 * 60 * 1000,
   });
 

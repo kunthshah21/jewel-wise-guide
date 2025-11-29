@@ -16,29 +16,34 @@ import {
 } from "recharts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
+import { useFilter } from "@/contexts/FilterContext";
 import Inventory from "@/pages/Inventory";
 import Market from "@/pages/Market";
 import Keywords from "@/pages/Keywords";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
+  const { timePeriod } = useFilter();
 
   // State for managing modal visibility
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [marketOpen, setMarketOpen] = useState(false);
   const [keywordsOpen, setKeywordsOpen] = useState(false);
 
-  // Fetch real data from API
+  // Convert time period string to number
+  const timePeriodDays = parseInt(timePeriod);
+
+  // Fetch real data from API with time period filter
   const { data: kpis, isLoading, error, refetch: refetchKPIs } = useQuery({
-    queryKey: ['kpis'],
-    queryFn: () => apiService.fetchKPIs(),
+    queryKey: ['kpis', timePeriodDays],
+    queryFn: () => apiService.fetchKPIs(timePeriodDays),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Fetch inventory categories for stock distribution chart
+  // Fetch inventory categories for stock distribution chart with time period filter
   const { data: categories, refetch: refetchCategories } = useQuery({
-    queryKey: ['inventory-categories'],
-    queryFn: () => apiService.fetchInventoryCategories(),
+    queryKey: ['inventory-categories', timePeriodDays],
+    queryFn: () => apiService.fetchInventoryCategories(timePeriodDays),
     staleTime: 5 * 60 * 1000,
   });
 

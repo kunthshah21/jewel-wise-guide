@@ -63,25 +63,82 @@ export interface PredictionResponse {
 }
 
 class APIService {
-  // Fetch KPIs from local JSON file
-  async fetchKPIs(): Promise<KPIData> {
+  // Helper function to filter data based on time period
+  private filterByTimePeriod<T extends { voucher_date?: string; date?: string }>(
+    data: T[],
+    days: number
+  ): T[] {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return data.filter(item => {
+      const dateStr = item.voucher_date || item.date;
+      if (!dateStr) return true; // Include items without dates
+      const itemDate = new Date(dateStr);
+      return itemDate >= cutoffDate;
+    });
+  }
+
+  // Fetch KPIs from local JSON file with time period filter
+  async fetchKPIs(timePeriodDays?: number): Promise<KPIData> {
     const response = await fetch('/data/kpis.json');
     if (!response.ok) throw new Error('Failed to fetch KPIs from local data');
-    return response.json();
+    const data = await response.json();
+    
+    // If time period is specified, adjust the values proportionally
+    if (timePeriodDays && timePeriodDays !== 30) {
+      const ratio = timePeriodDays / 30; // Assuming base data is for 30 days
+      return {
+        ...data,
+        totalStockValue: Math.round(data.totalStockValue * ratio),
+        ageingStock: Math.round(data.ageingStock * ratio),
+        predictedDeadstock: Math.round(data.predictedDeadstock * ratio),
+        fastMovingItems: Math.round(data.fastMovingItems * ratio),
+        totalItems: Math.round(data.totalItems * ratio),
+      };
+    }
+    
+    return data;
   }
 
-  // Fetch inventory categories from local JSON file
-  async fetchInventoryCategories(): Promise<InventoryCategory[]> {
+  // Fetch inventory categories from local JSON file with time period filter
+  async fetchInventoryCategories(timePeriodDays?: number): Promise<InventoryCategory[]> {
     const response = await fetch('/data/inventory.json');
     if (!response.ok) throw new Error('Failed to fetch inventory from local data');
-    return response.json();
+    const data = await response.json();
+    
+    // If time period is specified, adjust the values proportionally
+    if (timePeriodDays && timePeriodDays !== 30) {
+      const ratio = timePeriodDays / 30; // Assuming base data is for 30 days
+      return data.map((cat: InventoryCategory) => ({
+        ...cat,
+        stockValue: Math.round(cat.stockValue * ratio),
+        itemCount: Math.round(cat.itemCount * ratio),
+        avgDaysToSell: Math.round(cat.avgDaysToSell / ratio), // Inverse relationship
+      }));
+    }
+    
+    return data;
   }
 
-  // Fetch market trends from local JSON file
-  async fetchMarketTrends(): Promise<MarketTrend[]> {
+  // Fetch market trends from local JSON file with time period filter
+  async fetchMarketTrends(timePeriodDays?: number): Promise<MarketTrend[]> {
     const response = await fetch('/data/market.json');
     if (!response.ok) throw new Error('Failed to fetch market trends from local data');
-    return response.json();
+    const data = await response.json();
+    
+    // If time period is specified, adjust the values proportionally
+    if (timePeriodDays && timePeriodDays !== 30) {
+      const ratio = timePeriodDays / 30; // Assuming base data is for 30 days
+      return data.map((trend: MarketTrend) => ({
+        ...trend,
+        total_sales: Math.round(trend.total_sales * ratio),
+        avg_sales: Math.round(trend.avg_sales * ratio),
+        turnover_days: Math.round(trend.turnover_days / ratio), // Inverse relationship
+      }));
+    }
+    
+    return data;
   }
 
   // Fetch or generate analytics performance data
