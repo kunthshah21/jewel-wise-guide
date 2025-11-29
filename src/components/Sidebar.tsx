@@ -4,6 +4,12 @@ import {
   Package, 
   TrendingUp, 
   Search, 
+<<<<<<< Updated upstream
+=======
+  BarChart3,
+  Calculator,
+  Sparkles,
+>>>>>>> Stashed changes
   ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +25,11 @@ const navItems = [
   { to: "/inventory", icon: Package, label: "Inventory" },
   { to: "/market", icon: TrendingUp, label: "Market Overview" },
   { to: "/keywords", icon: Search, label: "Keyword Intelligence" },
+<<<<<<< Updated upstream
+=======
+  { to: "/analytics", icon: BarChart3, label: "Custom Analytics" },
+  { to: "/predictions", icon: Calculator, label: "Sales Predictions" },
+>>>>>>> Stashed changes
 ];
 
 export const Sidebar = ({ isOpen, onToggle }: SidebarProps) => {
