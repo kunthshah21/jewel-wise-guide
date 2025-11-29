@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useState } from "react";
 import { Package, TrendingDown, AlertTriangle, TrendingUp, Sparkles, RefreshCw } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
@@ -6,6 +7,12 @@ import { AISuggestionCard } from "@/components/AISuggestionCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+=======
+import { Package, TrendingDown, AlertTriangle, TrendingUp, Sparkles } from "lucide-react";
+import { KPICard } from "@/components/KPICard";
+import { AISuggestionCard } from "@/components/AISuggestionCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 import { Package, TrendingDown, AlertTriangle, TrendingUp, Sparkles } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
@@ -21,6 +28,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+<<<<<<< HEAD
 <<<<<<< HEAD
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
@@ -86,6 +94,17 @@ export default function Dashboard() {
       </div>
     );
   }
+=======
+
+const stockData = [
+  { name: "Gold", value: 45 },
+  { name: "Silver", value: 30 },
+  { name: "Diamond", value: 15 },
+  { name: "Platinum", value: 10 },
+];
+
+export default function Dashboard() {
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 
 const stockData = [

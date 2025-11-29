@@ -10,7 +10,11 @@ import Inventory from "./pages/Inventory";
 import Market from "./pages/Market";
 import Keywords from "./pages/Keywords";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import Predictions from "./pages/Predictions";
+=======
+import Analytics from "./pages/Analytics";
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 import Analytics from "./pages/Analytics";
 >>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))

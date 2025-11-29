@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { analyzeMarketOverview, isGeminiConfigured } from "@/services/geminiService";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { apiService } from "@/services/apiService";
 import { useFilter } from "@/contexts/FilterContext";
 
@@ -34,6 +35,12 @@ export default function Market() {
 
   // Optional: Keep Gemini AI insights as supplementary
   const { data: marketData, isLoading: aiLoading, error: aiError, refetch, isFetching } = useQuery({
+=======
+
+export default function Market() {
+  // Use React Query with caching strategy
+  const { data: marketData, isLoading, error, refetch, isFetching } = useQuery({
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 
 export default function Market() {
@@ -71,6 +78,7 @@ export default function Market() {
     );
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   if (error || !marketTrends) {
     return (
@@ -83,6 +91,8 @@ export default function Market() {
     );
   }
 
+=======
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 >>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
   return (
@@ -108,9 +118,12 @@ export default function Market() {
       </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       {/* Real Market Trends */}
       {marketTrends && marketTrends.length > 0 && (
 =======
+=======
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
       {/* Error State */}
       {error && (
         <Alert variant="destructive">
@@ -150,6 +163,9 @@ export default function Market() {
 
       {/* Market Data Display */}
       {marketData && !isLoading && (
+<<<<<<< HEAD
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
+=======
 >>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
         <>
           {/* Trending Categories */}

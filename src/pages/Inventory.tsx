@@ -1,11 +1,15 @@
 import { InventoryCard } from "@/components/InventoryCard";
 import { Input } from "@/components/ui/input";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
 import { Search, AlertTriangle, Download } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiService } from "@/services/apiService";
 import { useFilter } from "@/contexts/FilterContext";
+=======
+import { Search } from "lucide-react";
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 import { Search } from "lucide-react";
 >>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
@@ -81,6 +85,7 @@ const inventoryItems = [
 
 export default function Inventory() {
 <<<<<<< HEAD
+<<<<<<< HEAD
   const { timePeriod } = useFilter();
   const timePeriodDays = parseInt(timePeriod);
 
@@ -135,6 +140,8 @@ export default function Inventory() {
     URL.revokeObjectURL(url);
   };
 
+=======
+>>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
 =======
 >>>>>>> parent of 2819360 (feat: Integrate ML models with JewelAI frontend (Phases 1-4))
   return (
