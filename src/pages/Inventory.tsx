@@ -5,7 +5,6 @@ import { InventoryCard } from "@/components/InventoryCard";
 import { Input } from "@/components/ui/input";
 import { Search, AlertCircle } from "lucide-react";
 import { apiService, type InventoryCategory } from "@/services/apiService";
-import { useDateFilter } from "@/contexts/DateFilterContext";
 import { formatIndianCurrency } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -53,15 +52,11 @@ const transformInventoryData = (data: InventoryCategory[]) => {
 export default function Inventory() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const { getDateRange } = useDateFilter();
-  
-  // Get date range for API calls
-  const { startDate, endDate } = getDateRange();
 
-  // Fetch real inventory data from backend with date filter
+  // Fetch real inventory data from backend without date filter
   const { data: inventoryCategories, isLoading, error } = useQuery({
-    queryKey: ["inventory-categories", startDate, endDate],
-    queryFn: () => apiService.fetchInventoryCategories(startDate, endDate),
+    queryKey: ["inventory-categories"],
+    queryFn: () => apiService.fetchInventoryCategories(),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: 1,
   });
@@ -123,16 +118,35 @@ export default function Inventory() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {inventoryItems.length > 0 ? (
             inventoryItems.map((item) => {
-              const isBracelet = item.category.toLowerCase().includes("bracelet");
+              const categoryLower = item.category.toLowerCase();
+              const isBracelet = categoryLower.includes("bracelet");
+              const isRing = categoryLower.includes("ring");
+              const isNecklace = categoryLower.includes("necklace");
+              const isBangle = categoryLower.includes("bangle");
+              const isEarring = categoryLower.includes("earring");
+              const isPendant = categoryLower.includes("pendant");
+              const isClickable = isBracelet || isRing || isNecklace || isBangle || isEarring || isPendant;
+              
+              const getNavigationPath = () => {
+                if (isBracelet) return "/inventory/bracelets";
+                if (isRing) return "/inventory/rings";
+                if (isNecklace) return "/inventory/necklaces";
+                if (isBangle) return "/inventory/bangles";
+                if (isEarring) return "/inventory/earrings";
+                if (isPendant) return "/inventory/pendants";
+                return null;
+              };
+              
               return (
                 <div
                   key={item.category}
                   onClick={() => {
-                    if (isBracelet) {
-                      navigate("/inventory/bracelets");
+                    const path = getNavigationPath();
+                    if (path) {
+                      navigate(path);
                     }
                   }}
-                  className={isBracelet ? "cursor-pointer transition-transform hover:scale-105" : ""}
+                  className={isClickable ? "cursor-pointer transition-transform hover:scale-105" : ""}
                 >
                   <InventoryCard {...item} />
                 </div>

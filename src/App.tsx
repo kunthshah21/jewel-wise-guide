@@ -8,6 +8,11 @@ import { DateFilterProvider } from "./contexts/DateFilterContext";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import BraceletDeepDive from "./pages/BraceletDeepDive";
+import RingDeepDive from "./pages/RingDeepDive";
+import NecklaceDeepDive from "./pages/NecklaceDeepDive";
+import BangleDeepDive from "./pages/BangleDeepDive";
+import EarringDeepDive from "./pages/EarringDeepDive";
+import PendantDeepDive from "./pages/PendantDeepDive";
 import Market from "./pages/Market";
 import Keywords from "./pages/Keywords";
 import Predictions from "./pages/Predictions";
@@ -27,6 +32,11 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/inventory/bracelets" element={<BraceletDeepDive />} />
+              <Route path="/inventory/rings" element={<RingDeepDive />} />
+              <Route path="/inventory/necklaces" element={<NecklaceDeepDive />} />
+              <Route path="/inventory/bangles" element={<BangleDeepDive />} />
+              <Route path="/inventory/earrings" element={<EarringDeepDive />} />
+              <Route path="/inventory/pendants" element={<PendantDeepDive />} />
               <Route path="/market" element={<Market />} />
               <Route path="/keywords" element={<Keywords />} />
               <Route path="/predictions" element={<Predictions />} />

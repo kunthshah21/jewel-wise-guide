@@ -27,8 +27,11 @@ const navItems = [
     label: "Inventory",
     subItems: [
       { to: "/inventory/bracelets", label: "Bracelets" },
-      { to: "/inventory/rings", label: "Rings", disabled: true },
-      { to: "/inventory/necklaces", label: "Necklaces", disabled: true },
+      { to: "/inventory/rings", label: "Rings" },
+      { to: "/inventory/necklaces", label: "Necklaces" },
+      { to: "/inventory/bangles", label: "Bangles" },
+      { to: "/inventory/earrings", label: "Earrings" },
+      { to: "/inventory/pendants", label: "Pendants" },
     ]
   },
   { to: "/market", icon: TrendingUp, label: "Market Overview" },
