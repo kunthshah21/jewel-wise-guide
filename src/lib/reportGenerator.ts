@@ -1,36 +1,29 @@
-import { formatIndianCurrency } from "./utils";
+import { generateCategoryPDF, type CategoryReportData } from "./pdfReportGenerator";
 
-// Placeholder for future full implementation
-// For now, we'll create simple alert-based reports
-
-interface BaseReportData {
-  totalStockValue: number;
-  totalItems: number;
-  deadStockValue: number;
-  deadStockPercentage: string;
-  fastMovingPercentage: string;
+// Individual category report generators using the PDF generator
+export async function generateBraceletReport(data: CategoryReportData) {
+  await generateCategoryPDF("Bracelet", data);
 }
 
-export async function generateBraceletReport(data: any) {
-  alert(`Bracelet Report Generated!\n\nTotal Items: ${data.totalItems}\nTotal Value: ${formatIndianCurrency(data.totalStockValue)}\nDead Stock: ${data.deadStockPercentage}%\n\nFull PDF export coming soon!`);
+export async function generateRingReport(data: CategoryReportData) {
+  await generateCategoryPDF("Ring", data);
 }
 
-export async function generateRingReport(data: any) {
-  alert(`Ring Report Generated!\n\nTotal Items: ${data.totalItems}\nTotal Value: ${formatIndianCurrency(data.totalStockValue)}\nDead Stock: ${data.deadStockPercentage}%\n\nFull PDF export coming soon!`);
+export async function generateNecklaceReport(data: CategoryReportData) {
+  await generateCategoryPDF("Necklace", data);
 }
 
-export async function generateNecklaceReport(data: any) {
-  alert(`Necklace Report Generated!\n\nTotal Items: ${data.totalItems}\nTotal Value: ${formatIndianCurrency(data.totalStockValue)}\nDead Stock: ${data.deadStockPercentage}%\n\nFull PDF export coming soon!`);
+export async function generateBangleReport(data: CategoryReportData) {
+  await generateCategoryPDF("Bangle", data);
 }
 
-export async function generateBangleReport(data: any) {
-  alert(`Bangle Report Generated!\n\nTotal Items: ${data.totalItems}\nTotal Value: ${formatIndianCurrency(data.totalStockValue)}\nDead Stock: ${data.deadStockPercentage}%\n\nFull PDF export coming soon!`);
+export async function generateEarringReport(data: CategoryReportData) {
+  await generateCategoryPDF("Earring", data);
 }
 
-export async function generateEarringReport(data: any) {
-  alert(`Earring Report Generated!\n\nTotal Items: ${data.totalItems}\nTotal Value: ${formatIndianCurrency(data.totalStockValue)}\nDead Stock: ${data.deadStockPercentage}%\n\nFull PDF export coming soon!`);
+export async function generatePendantReport(data: CategoryReportData) {
+  await generateCategoryPDF("Pendant", data);
 }
 
-export async function generatePendantReport(data: any) {
-  alert(`Pendant Report Generated!\n\nTotal Items: ${data.totalItems}\nTotal Value: ${formatIndianCurrency(data.totalStockValue)}\nDead Stock: ${data.deadStockPercentage}%\n\nFull PDF export coming soon!`);
-}
+// Re-export the comprehensive report generator
+export { generateComprehensivePDF } from "./pdfReportGenerator";

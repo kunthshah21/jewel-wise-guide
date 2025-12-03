@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { InventoryCard } from "@/components/InventoryCard";
 import { Input } from "@/components/ui/input";
-import { Search, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, AlertCircle, Download, Loader2 } from "lucide-react";
 import { apiService, type InventoryCategory } from "@/services/apiService";
 import { formatIndianCurrency } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { generateComprehensivePDF } from "@/lib/reportGenerator";
 
 // Map category names to appropriate icons
 const getCategoryIcon = (category: string): string => {
@@ -52,6 +54,7 @@ const transformInventoryData = (data: InventoryCategory[]) => {
 export default function Inventory() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   // Fetch real inventory data from backend without date filter
   const { data: inventoryCategories, isLoading, error } = useQuery({
@@ -73,6 +76,38 @@ export default function Inventory() {
     );
   }, [inventoryCategories, searchQuery]);
 
+  // Handle comprehensive report download
+  const handleDownloadReport = async () => {
+    if (!inventoryCategories || inventoryCategories.length === 0) {
+      alert("No inventory data available to generate report.");
+      return;
+    }
+
+    setIsGeneratingReport(true);
+    try {
+      // Transform data for comprehensive report
+      const reportData = {
+        categories: inventoryCategories.map((cat) => ({
+          name: cat.category.charAt(0) + cat.category.slice(1).toLowerCase(),
+          itemCount: cat.itemCount,
+          stockValue: cat.stockValue,
+          avgDaysToSell: Math.round(cat.avgDaysToSell),
+          riskScore: cat.riskScore,
+          trend: cat.trend,
+        })),
+        totalValue: inventoryCategories.reduce((sum, cat) => sum + cat.stockValue, 0),
+        totalItems: inventoryCategories.reduce((sum, cat) => sum + cat.itemCount, 0),
+      };
+
+      await generateComprehensivePDF(reportData);
+    } catch (err) {
+      console.error("Error generating report:", err);
+      alert("Failed to generate report. Please try again.");
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -83,14 +118,33 @@ export default function Inventory() {
             Monitor stock levels, sales velocity, and AI-powered restock suggestions
           </p>
         </div>
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search categories..."
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search categories..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button
+            onClick={handleDownloadReport}
+            disabled={isLoading || isGeneratingReport || !inventoryCategories}
+            className="flex items-center gap-2 whitespace-nowrap"
+          >
+            {isGeneratingReport ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Download Report
+              </>
+            )}
+          </Button>
         </div>
       </div>
 

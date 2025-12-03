@@ -1,0 +1,924 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+// Extend jsPDF type to include autoTable
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
+
+// Types for report data
+export interface CategoryReportData {
+  category: string;
+  totalStockValue: number;
+  totalItems: number;
+  deadStockItems: any[];
+  deadStockValue: number;
+  deadStockPercentage: string;
+  fastMovingItems: any[];
+  fastMovingValue: number;
+  fastMovingPercentage: string;
+  slowMovingItems: any[];
+  slowMovingValue: number;
+  avgDaysToSell: number;
+  topPerforming: { type: string; count: number; value: number; avgVelocity: number };
+  worstPerforming: { type: string; count: number; value: number; avgVelocity: number };
+  fastMovingTopType: string;
+  avgSalesVelocity: string;
+  fastMovingAvgPrice: number;
+  slowMovingAvgDays: number;
+  slowMovingAvgPrice: number;
+  deadStockAvgDays: number;
+  deadStockAvgPrice: number;
+  distributionByType: { type: string; count: number; value: number }[];
+  distributionByMetal: { metal: string; count: number; value: number }[];
+  distributionByDesignStyle: { style: string; count: number; value: number }[];
+  distributionByLocation: { location: string; count: number; value: number }[];
+  topPerformingDesign: { style: string; count: number; value: number; avgVelocity: number };
+  worstPerformingDesign: { style: string; count: number; value: number; avgVelocity: number };
+  fastMovingTopDesign: string;
+  slowMovingTopDesign: string;
+  deadStockTopDesign: string;
+}
+
+export interface ComprehensiveReportData {
+  categories: {
+    name: string;
+    itemCount: number;
+    stockValue: number;
+    avgDaysToSell: number;
+    riskScore: number;
+    trend: string;
+  }[];
+  totalValue: number;
+  totalItems: number;
+}
+
+// Color palette for the PDF
+const COLORS = {
+  primary: [41, 98, 255] as [number, number, number], // Blue
+  secondary: [100, 116, 139] as [number, number, number], // Slate
+  success: [34, 197, 94] as [number, number, number], // Green
+  warning: [245, 158, 11] as [number, number, number], // Amber
+  danger: [239, 68, 68] as [number, number, number], // Red
+  dark: [30, 41, 59] as [number, number, number], // Dark slate
+  light: [248, 250, 252] as [number, number, number], // Light gray
+  white: [255, 255, 255] as [number, number, number],
+};
+
+// Utility functions
+function formatIndianCurrencyPDF(value: number): string {
+  const ONE_LAKH = 100000;
+  const ONE_CRORE = 10000000;
+
+  if (value >= ONE_CRORE) {
+    return `Rs. ${(value / ONE_CRORE).toFixed(2)} Cr`;
+  } else if (value >= ONE_LAKH) {
+    return `Rs. ${(value / ONE_LAKH).toFixed(2)} L`;
+  } else {
+    return `Rs. ${value.toLocaleString("en-IN")}`;
+  }
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(date: Date): string {
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function calculateHealthScore(deadStockPercentage: number, fastMovingPercentage: number): number {
+  // Health score based on inventory performance
+  const deadStockPenalty = deadStockPercentage * 1.5;
+  const fastMovingBonus = fastMovingPercentage * 0.8;
+  const score = Math.max(0, Math.min(100, 70 + fastMovingBonus - deadStockPenalty));
+  return Math.round(score);
+}
+
+function addHeader(doc: jsPDF, category: string, pageWidth: number) {
+  const currentDate = new Date();
+  
+  // Header background
+  doc.setFillColor(...COLORS.primary);
+  doc.rect(0, 0, pageWidth, 45, "F");
+  
+  // Karat.AI Branding
+  doc.setTextColor(...COLORS.white);
+  doc.setFontSize(24);
+  doc.setFont("helvetica", "bold");
+  doc.text("KARAT.AI", 20, 20);
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Intelligent Jewelry Inventory Analytics", 20, 28);
+  
+  // Report title
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${category.toUpperCase()} INVENTORY ANALYSIS REPORT`, 20, 40);
+  
+  // Date on right side
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Generated: ${formatDateTime(currentDate)}`, pageWidth - 20, 20, { align: "right" });
+  doc.text(`Report Date: ${formatDate(currentDate)}`, pageWidth - 20, 28, { align: "right" });
+  
+  return 55; // Return Y position after header
+}
+
+function addFooter(doc: jsPDF, pageWidth: number, pageHeight: number, pageNumber: number, totalPages: number) {
+  const footerY = pageHeight - 15;
+  
+  // Footer line
+  doc.setDrawColor(...COLORS.secondary);
+  doc.setLineWidth(0.5);
+  doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+  
+  // Footer text
+  doc.setFontSize(8);
+  doc.setTextColor(...COLORS.secondary);
+  doc.setFont("helvetica", "normal");
+  
+  doc.text("Generated by Karat.AI | Confidential Business Document", 20, footerY);
+  doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 20, footerY, { align: "right" });
+}
+
+function addSectionTitle(doc: jsPDF, title: string, y: number, pageWidth: number): number {
+  doc.setFillColor(...COLORS.light);
+  doc.rect(15, y - 5, pageWidth - 30, 12, "F");
+  
+  doc.setTextColor(...COLORS.primary);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, 20, y + 3);
+  
+  return y + 15;
+}
+
+function addExecutiveSummary(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "EXECUTIVE SUMMARY", y, pageWidth);
+  
+  const healthScore = calculateHealthScore(
+    parseFloat(data.deadStockPercentage),
+    parseFloat(data.fastMovingPercentage)
+  );
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  
+  // Summary box
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(20, y, pageWidth - 40, 50, 3, 3, "F");
+  
+  const leftCol = 30;
+  const rightCol = pageWidth / 2 + 10;
+  let boxY = y + 12;
+  
+  // Left column
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Inventory Value:", leftCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.text(formatIndianCurrencyPDF(data.totalStockValue), leftCol + 70, boxY);
+  
+  boxY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Items:", leftCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${data.totalItems} items`, leftCol + 70, boxY);
+  
+  boxY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Inventory Health Score:", leftCol, boxY);
+  doc.setFont("helvetica", "normal");
+  const scoreColor = healthScore >= 70 ? COLORS.success : healthScore >= 40 ? COLORS.warning : COLORS.danger;
+  doc.setTextColor(...scoreColor);
+  doc.text(`${healthScore}/100`, leftCol + 70, boxY);
+  doc.setTextColor(...COLORS.dark);
+  
+  boxY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Avg. Days to Sell:", leftCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${data.avgDaysToSell} days`, leftCol + 70, boxY);
+  
+  // Right column
+  boxY = y + 12;
+  doc.setFont("helvetica", "bold");
+  doc.text("Fast-Moving Stock:", rightCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.success);
+  doc.text(`${data.fastMovingPercentage}% (${data.fastMovingItems.length} items)`, rightCol + 60, boxY);
+  doc.setTextColor(...COLORS.dark);
+  
+  boxY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Slow-Moving Stock:", rightCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.warning);
+  doc.text(`${data.slowMovingItems.length} items`, rightCol + 60, boxY);
+  doc.setTextColor(...COLORS.dark);
+  
+  boxY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Dead Stock:", rightCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.danger);
+  doc.text(`${data.deadStockPercentage}% (${data.deadStockItems.length} items)`, rightCol + 60, boxY);
+  doc.setTextColor(...COLORS.dark);
+  
+  boxY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text("Dead Stock Value:", rightCol, boxY);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.danger);
+  doc.text(formatIndianCurrencyPDF(data.deadStockValue), rightCol + 60, boxY);
+  doc.setTextColor(...COLORS.dark);
+  
+  return y + 60;
+}
+
+function addOverallAIPrediction(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "OVERALL AI PREDICTION", y, pageWidth);
+  
+  const deadStockPct = parseFloat(data.deadStockPercentage);
+  const fastMovingPct = parseFloat(data.fastMovingPercentage);
+  
+  // Determine overall prediction
+  let prediction: string;
+  let predictionColor: [number, number, number];
+  let trend: string;
+  let riskLevel: string;
+  
+  if (deadStockPct > 25) {
+    prediction = "HIGH RISK - IMMEDIATE ACTION REQUIRED";
+    predictionColor = COLORS.danger;
+    trend = "Declining";
+    riskLevel = "High";
+  } else if (deadStockPct > 15) {
+    prediction = "MODERATE RISK - OPTIMIZATION NEEDED";
+    predictionColor = COLORS.warning;
+    trend = "Stable with concerns";
+    riskLevel = "Medium";
+  } else if (fastMovingPct > 30) {
+    prediction = "HEALTHY INVENTORY - GROWTH OPPORTUNITY";
+    predictionColor = COLORS.success;
+    trend = "Growing";
+    riskLevel = "Low";
+  } else {
+    prediction = "STABLE - MONITOR CLOSELY";
+    predictionColor = [59, 130, 246];
+    trend = "Stable";
+    riskLevel = "Low-Medium";
+  }
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(10);
+  
+  // Prediction box
+  doc.setFillColor(...predictionColor);
+  doc.roundedRect(20, y, pageWidth - 40, 15, 2, 2, "F");
+  doc.setTextColor(...COLORS.white);
+  doc.setFont("helvetica", "bold");
+  doc.text(prediction, pageWidth / 2, y + 10, { align: "center" });
+  
+  y += 25;
+  doc.setTextColor(...COLORS.dark);
+  doc.setFont("helvetica", "normal");
+  
+  // Trend analysis text
+  const analysisText = [
+    `Market Trend: ${trend} - Based on analysis of ${data.totalItems} items across your ${data.category.toLowerCase()} inventory.`,
+    ``,
+    `Risk Assessment: ${riskLevel} risk level identified. ${deadStockPct > 20 ? "Dead stock levels are concerning and require immediate liquidation strategies." : "Current stock movement is within acceptable parameters."}`,
+    ``,
+    `Sales Velocity: Average of ${data.avgSalesVelocity} units/month for fast-moving items. ${parseFloat(data.avgSalesVelocity) > 2 ? "Strong sales performance indicates healthy demand." : "Consider promotional activities to boost sales velocity."}`,
+    ``,
+    `Forecast: ${fastMovingPct > 25 ? "Positive outlook with strong fast-moving inventory. Focus on restocking top performers." : "Moderate outlook. Prioritize clearing slow-moving and dead stock to improve cash flow."}`
+  ];
+  
+  doc.setFontSize(9);
+  let textY = y;
+  analysisText.forEach(line => {
+    if (line) {
+      const splitText = doc.splitTextToSize(line, pageWidth - 50);
+      doc.text(splitText, 25, textY);
+      textY += splitText.length * 5;
+    } else {
+      textY += 3;
+    }
+  });
+  
+  return textY + 5;
+}
+
+function addSpecificAIInsights(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "SPECIFIC AI INSIGHTS", y, pageWidth);
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(10);
+  
+  // Top Performer insight
+  doc.setFillColor(236, 253, 245);
+  doc.roundedRect(20, y, pageWidth - 40, 25, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.success);
+  doc.text("TOP PERFORMER", 25, y + 8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.dark);
+  doc.text(`Type: ${data.topPerforming.type} | Items: ${data.topPerforming.count} | Value: ${formatIndianCurrencyPDF(data.topPerforming.value)}`, 25, y + 16);
+  doc.text(`Avg. Sales Velocity: ${data.topPerforming.avgVelocity.toFixed(1)} units/month | Design Style: ${data.topPerformingDesign.style}`, 25, y + 22);
+  
+  y += 30;
+  
+  // Worst Performer insight
+  doc.setFillColor(254, 242, 242);
+  doc.roundedRect(20, y, pageWidth - 40, 25, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.danger);
+  doc.text("NEEDS ATTENTION", 25, y + 8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.dark);
+  doc.text(`Type: ${data.worstPerforming.type} | Items: ${data.worstPerforming.count} | Value: ${formatIndianCurrencyPDF(data.worstPerforming.value)}`, 25, y + 16);
+  doc.text(`Avg. Sales Velocity: ${data.worstPerforming.avgVelocity.toFixed(1)} units/month | Design Style: ${data.worstPerformingDesign.style}`, 25, y + 22);
+  
+  y += 30;
+  
+  // Design trend insight
+  doc.setFillColor(239, 246, 255);
+  doc.roundedRect(20, y, pageWidth - 40, 20, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.primary);
+  doc.text("DESIGN TREND ANALYSIS", 25, y + 8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.dark);
+  const designDiff = ((data.topPerformingDesign.avgVelocity - data.worstPerformingDesign.avgVelocity) / data.worstPerformingDesign.avgVelocity * 100).toFixed(0);
+  doc.text(`${data.topPerformingDesign.style} designs are performing ${Math.abs(Number(designDiff))}% better than ${data.worstPerformingDesign.style} designs`, 25, y + 16);
+  
+  return y + 28;
+}
+
+function addPurchaseRecommendations(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "PURCHASE RECOMMENDATIONS - WHAT TO BUY NEXT", y, pageWidth);
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  
+  doc.text("Based on AI analysis of sales velocity, market trends, and inventory performance:", 25, y);
+  y += 8;
+  
+  // Generate purchase recommendations based on top performers
+  const recommendations = [];
+  
+  // Top type recommendation
+  if (data.topPerforming.type) {
+    recommendations.push({
+      type: data.topPerforming.type,
+      metal: data.distributionByMetal[0]?.metal || "Gold",
+      style: data.topPerformingDesign.style,
+      reason: `High sales velocity (${data.topPerforming.avgVelocity.toFixed(1)} units/month)`,
+      priority: "High"
+    });
+  }
+  
+  // Fast-moving type recommendation
+  if (data.fastMovingTopType && data.fastMovingTopType !== data.topPerforming.type) {
+    recommendations.push({
+      type: data.fastMovingTopType,
+      metal: data.distributionByMetal[1]?.metal || data.distributionByMetal[0]?.metal || "Gold",
+      style: data.fastMovingTopDesign,
+      reason: `Strong fast-moving performance`,
+      priority: "High"
+    });
+  }
+  
+  // Add metal-based recommendations
+  const topMetals = data.distributionByMetal.slice(0, 2);
+  topMetals.forEach((metalData, index) => {
+    if (recommendations.length < 5) {
+      recommendations.push({
+        type: data.distributionByType[index]?.type || data.topPerforming.type,
+        metal: metalData.metal,
+        style: data.topPerformingDesign.style,
+        reason: `Popular metal choice with ${metalData.count} items in stock`,
+        priority: index === 0 ? "Medium" : "Low"
+      });
+    }
+  });
+  
+  // Create table
+  autoTable(doc, {
+    startY: y,
+    head: [["Priority", "Type", "Metal", "Design Style", "Reason"]],
+    body: recommendations.map(r => [r.priority, r.type, r.metal, r.style, r.reason]),
+    theme: "striped",
+    headStyles: {
+      fillColor: COLORS.success,
+      textColor: COLORS.white,
+      fontStyle: "bold",
+    },
+    styles: {
+      fontSize: 8,
+      cellPadding: 3,
+    },
+    columnStyles: {
+      0: { cellWidth: 25, fontStyle: "bold" },
+      1: { cellWidth: 35 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 35 },
+      4: { cellWidth: "auto" },
+    },
+    margin: { left: 20, right: 20 },
+  });
+  
+  return doc.lastAutoTable.finalY + 10;
+}
+
+function addLiquidationRecommendations(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "LIQUIDATION RECOMMENDATIONS - WHAT TO LIQUIDATE", y, pageWidth);
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  
+  doc.text("Items recommended for immediate liquidation based on days in stock and sales performance:", 25, y);
+  y += 8;
+  
+  // Get dead stock items for liquidation (top 10)
+  const liquidationItems = data.deadStockItems.slice(0, 10).map(item => {
+    const daysInStock = item.daysInInventory || 0;
+    let suggestedDiscount: string;
+    
+    if (daysInStock > 365) {
+      suggestedDiscount = "40-50%";
+    } else if (daysInStock > 270) {
+      suggestedDiscount = "30-40%";
+    } else if (daysInStock > 180) {
+      suggestedDiscount = "20-30%";
+    } else {
+      suggestedDiscount = "15-20%";
+    }
+    
+    return {
+      sku: item.sku || "N/A",
+      type: item.type || "N/A",
+      metal: `${item.metal || ""} ${item.metalPurity || ""}`.trim() || "N/A",
+      days: daysInStock,
+      price: item.finalSellingPrice || 0,
+      discount: suggestedDiscount
+    };
+  });
+  
+  if (liquidationItems.length > 0) {
+    autoTable(doc, {
+      startY: y,
+      head: [["SKU", "Type", "Metal/Purity", "Days in Stock", "Current Price", "Suggested Discount"]],
+      body: liquidationItems.map(item => [
+        item.sku,
+        item.type,
+        item.metal,
+        `${item.days} days`,
+        formatIndianCurrencyPDF(item.price),
+        item.discount
+      ]),
+      theme: "striped",
+      headStyles: {
+        fillColor: COLORS.danger,
+        textColor: COLORS.white,
+        fontStyle: "bold",
+      },
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { cellWidth: 30 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 30 },
+        5: { cellWidth: 30 },
+      },
+      margin: { left: 20, right: 20 },
+    });
+    
+    y = doc.lastAutoTable.finalY + 5;
+  }
+  
+  // Summary text
+  doc.setFontSize(8);
+  doc.setTextColor(...COLORS.secondary);
+  const totalLiquidationValue = data.deadStockItems.reduce((sum, item) => sum + (item.finalSellingPrice || 0), 0);
+  doc.text(`Total potential recovery from liquidation: ${formatIndianCurrencyPDF(totalLiquidationValue)} (before discounts)`, 25, y);
+  
+  return y + 10;
+}
+
+function addKeyMetricsSummary(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "KEY METRICS SUMMARY", y, pageWidth);
+  
+  const metricsData = [
+    ["Metric", "Value", "Status"],
+    ["Total Stock Value", formatIndianCurrencyPDF(data.totalStockValue), "Reference"],
+    ["Total Items", `${data.totalItems} items`, "Reference"],
+    ["Average Days to Sell", `${data.avgDaysToSell} days`, data.avgDaysToSell > 120 ? "Needs Improvement" : "Good"],
+    ["Fast-Moving Items", `${data.fastMovingItems.length} (${data.fastMovingPercentage}%)`, parseFloat(data.fastMovingPercentage) > 25 ? "Excellent" : "Moderate"],
+    ["Fast-Moving Value", formatIndianCurrencyPDF(data.fastMovingValue), "Reference"],
+    ["Avg. Fast-Moving Price", formatIndianCurrencyPDF(data.fastMovingAvgPrice), "Reference"],
+    ["Slow-Moving Items", `${data.slowMovingItems.length} items`, data.slowMovingItems.length > data.totalItems * 0.3 ? "Attention Needed" : "Acceptable"],
+    ["Slow-Moving Value", formatIndianCurrencyPDF(data.slowMovingValue), "Reference"],
+    ["Slow-Moving Avg. Days", `${data.slowMovingAvgDays} days`, "Monitor"],
+    ["Dead Stock Items", `${data.deadStockItems.length} (${data.deadStockPercentage}%)`, parseFloat(data.deadStockPercentage) > 20 ? "Critical" : "Manageable"],
+    ["Dead Stock Value", formatIndianCurrencyPDF(data.deadStockValue), parseFloat(data.deadStockPercentage) > 20 ? "High Risk" : "Reference"],
+    ["Dead Stock Avg. Days", `${data.deadStockAvgDays} days`, "Liquidate"],
+    ["Sales Velocity (Fast)", `${data.avgSalesVelocity} units/month`, parseFloat(data.avgSalesVelocity) > 2 ? "Strong" : "Moderate"],
+  ];
+  
+  autoTable(doc, {
+    startY: y,
+    head: [metricsData[0]],
+    body: metricsData.slice(1),
+    theme: "grid",
+    headStyles: {
+      fillColor: COLORS.primary,
+      textColor: COLORS.white,
+      fontStyle: "bold",
+    },
+    styles: {
+      fontSize: 8,
+      cellPadding: 3,
+    },
+    columnStyles: {
+      0: { cellWidth: 55, fontStyle: "bold" },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 40 },
+    },
+    margin: { left: 20, right: 20 },
+    didParseCell: (data) => {
+      if (data.column.index === 2 && data.section === "body") {
+        const status = data.cell.raw as string;
+        if (status.includes("Critical") || status.includes("High Risk")) {
+          data.cell.styles.textColor = COLORS.danger;
+          data.cell.styles.fontStyle = "bold";
+        } else if (status.includes("Excellent") || status.includes("Strong") || status.includes("Good")) {
+          data.cell.styles.textColor = COLORS.success;
+        } else if (status.includes("Attention") || status.includes("Needs")) {
+          data.cell.styles.textColor = COLORS.warning;
+        }
+      }
+    },
+  });
+  
+  return doc.lastAutoTable.finalY + 10;
+}
+
+function addConclusion(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
+  y = addSectionTitle(doc, "CONCLUSION & ACTION ITEMS", y, pageWidth);
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(9);
+  
+  const deadStockPct = parseFloat(data.deadStockPercentage);
+  const fastMovingPct = parseFloat(data.fastMovingPercentage);
+  
+  // Priority actions box
+  doc.setFillColor(255, 251, 235);
+  doc.setDrawColor(...COLORS.warning);
+  doc.setLineWidth(1);
+  doc.roundedRect(20, y, pageWidth - 40, 50, 3, 3, "FD");
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("PRIORITY ACTION ITEMS:", 25, y + 10);
+  doc.setFont("helvetica", "normal");
+  
+  const actions = [];
+  
+  if (deadStockPct > 20) {
+    actions.push(`1. URGENT: Liquidate ${data.deadStockItems.length} dead stock items worth ${formatIndianCurrencyPDF(data.deadStockValue)} with 30-40% discounts`);
+  } else if (deadStockPct > 10) {
+    actions.push(`1. Clear ${data.deadStockItems.length} dead stock items through promotional campaigns`);
+  } else {
+    actions.push(`1. Maintain current inventory health - dead stock levels are manageable`);
+  }
+  
+  if (fastMovingPct > 25) {
+    actions.push(`2. Restock ${data.topPerforming.type} items - current top performers with strong velocity`);
+  } else {
+    actions.push(`2. Analyze slow-moving items for potential bundling or repositioning`);
+  }
+  
+  actions.push(`3. Focus purchasing on ${data.topPerformingDesign.style} designs in ${data.distributionByMetal[0]?.metal || "Gold"}`);
+  actions.push(`4. Review ${data.worstPerforming.type} category for potential phase-out or redesign`);
+  
+  let actionY = y + 18;
+  actions.forEach(action => {
+    const splitAction = doc.splitTextToSize(action, pageWidth - 55);
+    doc.text(splitAction, 25, actionY);
+    actionY += splitAction.length * 5 + 2;
+  });
+  
+  y += 58;
+  
+  // Summary text
+  doc.setFontSize(9);
+  doc.setTextColor(...COLORS.secondary);
+  doc.setFont("helvetica", "italic");
+  const summaryText = `This report provides AI-driven insights for ${data.category.toLowerCase()} inventory optimization. Regular monitoring and prompt action on liquidation recommendations will help improve cash flow and inventory turnover.`;
+  const splitSummary = doc.splitTextToSize(summaryText, pageWidth - 50);
+  doc.text(splitSummary, 25, y);
+  
+  return y + splitSummary.length * 5 + 10;
+}
+
+// Main export function for individual category reports
+export async function generateCategoryPDF(category: string, data: CategoryReportData): Promise<void> {
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+  
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  // Enrich data with category name
+  data.category = category;
+  
+  let y = addHeader(doc, category, pageWidth);
+  
+  // Add all sections
+  y = addExecutiveSummary(doc, data, y, pageWidth);
+  
+  // Check if we need a new page
+  if (y > pageHeight - 80) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addOverallAIPrediction(doc, data, y, pageWidth);
+  
+  if (y > pageHeight - 80) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addSpecificAIInsights(doc, data, y, pageWidth);
+  
+  if (y > pageHeight - 80) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addPurchaseRecommendations(doc, data, y, pageWidth);
+  
+  if (y > pageHeight - 80) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addLiquidationRecommendations(doc, data, y, pageWidth);
+  
+  if (y > pageHeight - 100) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addKeyMetricsSummary(doc, data, y, pageWidth);
+  
+  if (y > pageHeight - 80) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addConclusion(doc, data, y, pageWidth);
+  
+  // Add footers to all pages
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addFooter(doc, pageWidth, pageHeight, i, totalPages);
+  }
+  
+  // Generate filename with date
+  const dateStr = new Date().toISOString().split("T")[0];
+  const filename = `Karat_AI_${category}_Inventory_Report_${dateStr}.pdf`;
+  
+  // Save the PDF
+  doc.save(filename);
+}
+
+// Comprehensive report for all categories
+export async function generateComprehensivePDF(data: ComprehensiveReportData): Promise<void> {
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+  
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const currentDate = new Date();
+  
+  // Header
+  doc.setFillColor(...COLORS.primary);
+  doc.rect(0, 0, pageWidth, 50, "F");
+  
+  doc.setTextColor(...COLORS.white);
+  doc.setFontSize(28);
+  doc.setFont("helvetica", "bold");
+  doc.text("KARAT.AI", 20, 22);
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Intelligent Jewelry Inventory Analytics", 20, 30);
+  
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("COMPREHENSIVE INVENTORY ANALYSIS REPORT", 20, 45);
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Generated: ${formatDateTime(currentDate)}`, pageWidth - 20, 22, { align: "right" });
+  doc.text(`Report Date: ${formatDate(currentDate)}`, pageWidth - 20, 30, { align: "right" });
+  
+  let y = 60;
+  
+  // Executive Summary
+  y = addSectionTitle(doc, "EXECUTIVE SUMMARY", y, pageWidth);
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(10);
+  
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(20, y, pageWidth - 40, 35, 3, 3, "F");
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Portfolio Value:", 30, y + 12);
+  doc.setFont("helvetica", "normal");
+  doc.text(formatIndianCurrencyPDF(data.totalValue), 80, y + 12);
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("Total Items:", 30, y + 22);
+  doc.setFont("helvetica", "normal");
+  doc.text(`${data.totalItems} items across ${data.categories.length} categories`, 80, y + 22);
+  
+  doc.setFont("helvetica", "bold");
+  doc.text("Categories:", 30, y + 32);
+  doc.setFont("helvetica", "normal");
+  doc.text(data.categories.map(c => c.name).join(", "), 80, y + 32);
+  
+  y += 45;
+  
+  // Category Overview Table
+  y = addSectionTitle(doc, "CATEGORY-WISE OVERVIEW", y, pageWidth);
+  
+  autoTable(doc, {
+    startY: y,
+    head: [["Category", "Items", "Stock Value", "Avg. Days to Sell", "Risk Score", "Trend"]],
+    body: data.categories.map(cat => [
+      cat.name,
+      `${cat.itemCount}`,
+      formatIndianCurrencyPDF(cat.stockValue),
+      `${cat.avgDaysToSell} days`,
+      `${cat.riskScore}/100`,
+      cat.trend.charAt(0).toUpperCase() + cat.trend.slice(1)
+    ]),
+    theme: "striped",
+    headStyles: {
+      fillColor: COLORS.primary,
+      textColor: COLORS.white,
+      fontStyle: "bold",
+    },
+    styles: {
+      fontSize: 9,
+      cellPadding: 4,
+    },
+    margin: { left: 20, right: 20 },
+    didParseCell: (cellData) => {
+      if (cellData.column.index === 4 && cellData.section === "body") {
+        const score = parseInt(cellData.cell.raw as string);
+        if (score > 60) {
+          cellData.cell.styles.textColor = COLORS.danger;
+        } else if (score > 30) {
+          cellData.cell.styles.textColor = COLORS.warning;
+        } else {
+          cellData.cell.styles.textColor = COLORS.success;
+        }
+      }
+      if (cellData.column.index === 5 && cellData.section === "body") {
+        const trend = (cellData.cell.raw as string).toLowerCase();
+        if (trend === "rising") {
+          cellData.cell.styles.textColor = COLORS.success;
+        } else if (trend === "falling") {
+          cellData.cell.styles.textColor = COLORS.danger;
+        }
+      }
+    },
+  });
+  
+  y = doc.lastAutoTable.finalY + 15;
+  
+  // AI Predictions
+  y = addSectionTitle(doc, "OVERALL AI PREDICTION", y, pageWidth);
+  
+  const avgRiskScore = data.categories.reduce((sum, cat) => sum + cat.riskScore, 0) / data.categories.length;
+  const highRiskCategories = data.categories.filter(cat => cat.riskScore > 50);
+  
+  let overallStatus: string;
+  let statusColor: [number, number, number];
+  
+  if (avgRiskScore > 60) {
+    overallStatus = "HIGH RISK - PORTFOLIO OPTIMIZATION REQUIRED";
+    statusColor = COLORS.danger;
+  } else if (avgRiskScore > 40) {
+    overallStatus = "MODERATE RISK - ATTENTION NEEDED";
+    statusColor = COLORS.warning;
+  } else {
+    overallStatus = "HEALTHY PORTFOLIO - MAINTAIN CURRENT STRATEGY";
+    statusColor = COLORS.success;
+  }
+  
+  doc.setFillColor(...statusColor);
+  doc.roundedRect(20, y, pageWidth - 40, 15, 2, 2, "F");
+  doc.setTextColor(...COLORS.white);
+  doc.setFont("helvetica", "bold");
+  doc.text(overallStatus, pageWidth / 2, y + 10, { align: "center" });
+  
+  y += 25;
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  
+  if (highRiskCategories.length > 0) {
+    doc.text(`High-risk categories requiring immediate attention: ${highRiskCategories.map(c => c.name).join(", ")}`, 25, y);
+    y += 8;
+  }
+  
+  const risingCategories = data.categories.filter(cat => cat.trend === "rising");
+  if (risingCategories.length > 0) {
+    doc.text(`Categories with positive momentum: ${risingCategories.map(c => c.name).join(", ")}`, 25, y);
+    y += 8;
+  }
+  
+  y += 10;
+  
+  // Recommendations
+  if (y > pageHeight - 80) {
+    doc.addPage();
+    y = 20;
+  }
+  
+  y = addSectionTitle(doc, "KEY RECOMMENDATIONS", y, pageWidth);
+  
+  const recommendations = [
+    `Focus liquidation efforts on categories with risk scores above 50`,
+    `Prioritize restocking of ${risingCategories[0]?.name || "fast-moving"} items`,
+    `Review inventory aging across all categories - target average below 90 days`,
+    `Consider promotional campaigns for slow-moving stock before festive seasons`,
+    `Download individual category reports for detailed item-level analysis`,
+  ];
+  
+  doc.setFontSize(9);
+  recommendations.forEach((rec, index) => {
+    doc.text(`${index + 1}. ${rec}`, 25, y);
+    y += 8;
+  });
+  
+  // Conclusion
+  y += 10;
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(20, y, pageWidth - 40, 25, 3, 3, "F");
+  
+  doc.setFont("helvetica", "italic");
+  doc.setTextColor(...COLORS.secondary);
+  const conclusionText = `This comprehensive report provides a portfolio-level view of your jewelry inventory. For detailed item-level analysis, purchase recommendations, and liquidation strategies, please download individual category reports from the respective inventory pages.`;
+  const splitConclusion = doc.splitTextToSize(conclusionText, pageWidth - 50);
+  doc.text(splitConclusion, 25, y + 10);
+  
+  // Footer
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addFooter(doc, pageWidth, pageHeight, i, totalPages);
+  }
+  
+  // Save
+  const dateStr = new Date().toISOString().split("T")[0];
+  doc.save(`Karat_AI_Comprehensive_Inventory_Report_${dateStr}.pdf`);
+}
