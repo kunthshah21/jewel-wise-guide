@@ -1013,7 +1013,7 @@ function DashboardContent() {
           </div>
           
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Welcome back to JewelWise
+            Karat.AI
           </h1>
           
           <div className="space-y-3 max-w-3xl">

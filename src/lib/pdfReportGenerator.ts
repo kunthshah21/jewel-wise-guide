@@ -157,7 +157,57 @@ function addFooter(doc: jsPDF, pageWidth: number, pageHeight: number, pageNumber
   doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 20, footerY, { align: "right" });
 }
 
-function addSectionTitle(doc: jsPDF, title: string, y: number, pageWidth: number): number {
+// Helper function to check page break and add new page if needed
+function checkPageBreak(doc: jsPDF, currentY: number, requiredHeight: number, pageHeight: number): number {
+  const footerSpace = 20; // Space needed for footer
+  const minMargin = 10; // Minimum margin from bottom
+  const bottomLimit = pageHeight - footerSpace - minMargin;
+  
+  if (currentY + requiredHeight > bottomLimit) {
+    doc.addPage();
+    return 20; // Start new page with top margin
+  }
+  return currentY;
+}
+
+// Helper function to add text with automatic page break handling
+function addTextWithPageBreak(
+  doc: jsPDF, 
+  text: string | string[], 
+  x: number, 
+  y: number, 
+  pageWidth: number, 
+  pageHeight: number,
+  lineHeight: number = 5
+): number {
+  let currentY = y;
+  const textArray = Array.isArray(text) ? text : [text];
+  
+  for (const line of textArray) {
+    if (!line) {
+      currentY += 3;
+      continue;
+    }
+    
+    const splitText = doc.splitTextToSize(line, pageWidth - (x * 2));
+    const textHeight = splitText.length * lineHeight;
+    
+    // Check if we need a new page
+    currentY = checkPageBreak(doc, currentY, textHeight, pageHeight);
+    
+    doc.text(splitText, x, currentY);
+    currentY += textHeight;
+  }
+  
+  return currentY;
+}
+
+function addSectionTitle(doc: jsPDF, title: string, y: number, pageWidth: number, pageHeight?: number): number {
+  // Check page break if pageHeight is provided
+  if (pageHeight) {
+    y = checkPageBreak(doc, y, 20, pageHeight);
+  }
+  
   doc.setFillColor(...COLORS.light);
   doc.rect(15, y - 5, pageWidth - 30, 12, "F");
   
@@ -169,94 +219,87 @@ function addSectionTitle(doc: jsPDF, title: string, y: number, pageWidth: number
   return y + 15;
 }
 
-function addExecutiveSummary(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "EXECUTIVE SUMMARY", y, pageWidth);
+function addExecutiveSummary(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "EXECUTIVE SUMMARY", y, pageWidth, pageHeight);
   
   const healthScore = calculateHealthScore(
     parseFloat(data.deadStockPercentage),
     parseFloat(data.fastMovingPercentage)
   );
   
-  doc.setTextColor(...COLORS.dark);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  // Use autoTable for Executive Summary to avoid overlap issues
+  const summaryData = [
+    ["Metric", "Value"],
+    ["Total Inventory Value", formatIndianCurrencyPDF(data.totalStockValue)],
+    ["Total Items", `${data.totalItems} items`],
+    ["Inventory Health Score", `${healthScore}/100`],
+    ["Avg. Days to Sell", `${data.avgDaysToSell} days`],
+    ["Fast-Moving Stock", `${data.fastMovingPercentage}% (${data.fastMovingItems.length} items)`],
+    ["Fast-Moving Value", formatIndianCurrencyPDF(data.fastMovingValue)],
+    ["Slow-Moving Stock", `${data.slowMovingItems.length} items`],
+    ["Slow-Moving Value", formatIndianCurrencyPDF(data.slowMovingValue)],
+    ["Dead Stock", `${data.deadStockPercentage}% (${data.deadStockItems.length} items)`],
+    ["Dead Stock Value", formatIndianCurrencyPDF(data.deadStockValue)],
+  ];
   
-  // Summary box
-  doc.setFillColor(245, 247, 250);
-  doc.roundedRect(20, y, pageWidth - 40, 50, 3, 3, "F");
+  autoTable(doc, {
+    startY: y,
+    head: [summaryData[0]],
+    body: summaryData.slice(1),
+    theme: "striped",
+    headStyles: {
+      fillColor: COLORS.primary,
+      textColor: COLORS.white,
+      fontStyle: "bold",
+    },
+    styles: {
+      fontSize: 9,
+      cellPadding: 4,
+    },
+    columnStyles: {
+      0: { cellWidth: 70, fontStyle: "bold" },
+      1: { cellWidth: "auto" },
+    },
+    margin: { left: 20, right: 20 },
+    didParseCell: (cellData) => {
+      if (cellData.column.index === 1 && cellData.section === "body") {
+        const value = cellData.cell.raw as string;
+        // Color code health score
+        if (cellData.row.index === 2) {
+          const score = parseInt(value.split("/")[0]);
+          if (score >= 70) {
+            cellData.cell.styles.textColor = COLORS.success;
+          } else if (score >= 40) {
+            cellData.cell.styles.textColor = COLORS.warning;
+          } else {
+            cellData.cell.styles.textColor = COLORS.danger;
+          }
+        }
+        // Color code fast-moving stock
+        if (cellData.row.index === 4) {
+          cellData.cell.styles.textColor = COLORS.success;
+        }
+        // Color code slow-moving stock
+        if (cellData.row.index === 6) {
+          cellData.cell.styles.textColor = COLORS.warning;
+        }
+        // Color code dead stock
+        if (cellData.row.index === 8 || cellData.row.index === 9) {
+          cellData.cell.styles.textColor = COLORS.danger;
+        }
+      }
+    },
+  });
   
-  const leftCol = 30;
-  const rightCol = pageWidth / 2 + 10;
-  let boxY = y + 12;
-  
-  // Left column
-  doc.setFont("helvetica", "bold");
-  doc.text("Total Inventory Value:", leftCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.text(formatIndianCurrencyPDF(data.totalStockValue), leftCol + 70, boxY);
-  
-  boxY += 10;
-  doc.setFont("helvetica", "bold");
-  doc.text("Total Items:", leftCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.text(`${data.totalItems} items`, leftCol + 70, boxY);
-  
-  boxY += 10;
-  doc.setFont("helvetica", "bold");
-  doc.text("Inventory Health Score:", leftCol, boxY);
-  doc.setFont("helvetica", "normal");
-  const scoreColor = healthScore >= 70 ? COLORS.success : healthScore >= 40 ? COLORS.warning : COLORS.danger;
-  doc.setTextColor(...scoreColor);
-  doc.text(`${healthScore}/100`, leftCol + 70, boxY);
-  doc.setTextColor(...COLORS.dark);
-  
-  boxY += 10;
-  doc.setFont("helvetica", "bold");
-  doc.text("Avg. Days to Sell:", leftCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.text(`${data.avgDaysToSell} days`, leftCol + 70, boxY);
-  
-  // Right column
-  boxY = y + 12;
-  doc.setFont("helvetica", "bold");
-  doc.text("Fast-Moving Stock:", rightCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.success);
-  doc.text(`${data.fastMovingPercentage}% (${data.fastMovingItems.length} items)`, rightCol + 60, boxY);
-  doc.setTextColor(...COLORS.dark);
-  
-  boxY += 10;
-  doc.setFont("helvetica", "bold");
-  doc.text("Slow-Moving Stock:", rightCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.warning);
-  doc.text(`${data.slowMovingItems.length} items`, rightCol + 60, boxY);
-  doc.setTextColor(...COLORS.dark);
-  
-  boxY += 10;
-  doc.setFont("helvetica", "bold");
-  doc.text("Dead Stock:", rightCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.danger);
-  doc.text(`${data.deadStockPercentage}% (${data.deadStockItems.length} items)`, rightCol + 60, boxY);
-  doc.setTextColor(...COLORS.dark);
-  
-  boxY += 10;
-  doc.setFont("helvetica", "bold");
-  doc.text("Dead Stock Value:", rightCol, boxY);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.danger);
-  doc.text(formatIndianCurrencyPDF(data.deadStockValue), rightCol + 60, boxY);
-  doc.setTextColor(...COLORS.dark);
-  
-  return y + 60;
+  return doc.lastAutoTable.finalY + 10;
 }
 
-function addOverallAIPrediction(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "OVERALL AI PREDICTION", y, pageWidth);
+function addOverallAIPrediction(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "OVERALL AI PREDICTION", y, pageWidth, pageHeight);
   
   const deadStockPct = parseFloat(data.deadStockPercentage);
   const fastMovingPct = parseFloat(data.fastMovingPercentage);
+  const slowMovingPct = ((data.slowMovingItems.length / data.totalItems) * 100).toFixed(1);
   
   // Determine overall prediction
   let prediction: string;
@@ -299,87 +342,207 @@ function addOverallAIPrediction(doc: jsPDF, data: CategoryReportData, y: number,
   y += 25;
   doc.setTextColor(...COLORS.dark);
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
   
-  // Trend analysis text
-  const analysisText = [
-    `Market Trend: ${trend} - Based on analysis of ${data.totalItems} items across your ${data.category.toLowerCase()} inventory.`,
-    ``,
-    `Risk Assessment: ${riskLevel} risk level identified. ${deadStockPct > 20 ? "Dead stock levels are concerning and require immediate liquidation strategies." : "Current stock movement is within acceptable parameters."}`,
-    ``,
-    `Sales Velocity: Average of ${data.avgSalesVelocity} units/month for fast-moving items. ${parseFloat(data.avgSalesVelocity) > 2 ? "Strong sales performance indicates healthy demand." : "Consider promotional activities to boost sales velocity."}`,
-    ``,
-    `Forecast: ${fastMovingPct > 25 ? "Positive outlook with strong fast-moving inventory. Focus on restocking top performers." : "Moderate outlook. Prioritize clearing slow-moving and dead stock to improve cash flow."}`
+  // Detailed narrative analysis
+  let textY = y;
+  
+  // Market Trend Analysis
+  doc.setFont("helvetica", "bold");
+  textY = checkPageBreak(doc, textY, 10, pageHeight);
+  doc.text("Market Trend Analysis:", 25, textY);
+  textY += 7;
+  doc.setFont("helvetica", "normal");
+  const trendAnalysis = `Our AI analysis of your ${data.category.toLowerCase()} inventory reveals a ${trend.toLowerCase()} market trend based on comprehensive evaluation of ${data.totalItems} items valued at ${formatIndianCurrencyPDF(data.totalStockValue)}. The inventory composition shows ${fastMovingPct}% fast-moving stock, ${slowMovingPct}% slow-moving stock, and ${deadStockPct}% dead stock. This distribution indicates ${trend === "Growing" ? "strong consumer demand and healthy inventory turnover" : trend === "Declining" ? "declining consumer interest requiring strategic intervention" : "stable market conditions with room for optimization"}.`;
+  textY = addTextWithPageBreak(doc, trendAnalysis, 25, textY, pageWidth, pageHeight, 5);
+  textY += 5;
+  
+  // Risk Assessment
+  doc.setFont("helvetica", "bold");
+  textY = checkPageBreak(doc, textY, 10, pageHeight);
+  doc.text("Risk Assessment:", 25, textY);
+  textY += 7;
+  doc.setFont("helvetica", "normal");
+  let riskAnalysis: string;
+  if (deadStockPct > 25) {
+    riskAnalysis = `The inventory presents a HIGH risk profile with ${deadStockPct}% of stock classified as dead stock, representing ${formatIndianCurrencyPDF(data.deadStockValue)} in tied-up capital. This level of dead stock significantly impacts cash flow and inventory turnover rates. The average days to sell of ${data.avgDaysToSell} days exceeds industry benchmarks, indicating potential issues with product-market fit, pricing strategy, or market saturation. Immediate liquidation strategies are critical to free up capital and reduce carrying costs.`;
+  } else if (deadStockPct > 15) {
+    riskAnalysis = `The inventory shows a MODERATE risk level with ${deadStockPct}% dead stock (${formatIndianCurrencyPDF(data.deadStockValue)}) requiring attention. While not critical, this level of non-moving inventory affects profitability and capital efficiency. The average inventory age of ${data.avgDaysToSell} days suggests some items are approaching the slow-moving threshold. Proactive measures such as promotional campaigns, bundling strategies, or strategic discounting should be implemented to prevent further accumulation of dead stock.`;
+  } else if (fastMovingPct > 30) {
+    riskAnalysis = `The inventory demonstrates a LOW risk profile with excellent health indicators. ${fastMovingPct}% fast-moving stock indicates strong consumer demand and effective inventory management. The average days to sell of ${data.avgDaysToSell} days is within optimal range, suggesting good product-market fit and appropriate pricing. With only ${deadStockPct}% dead stock, the inventory maintains healthy turnover rates. This presents an opportunity to expand inventory in high-performing categories.`;
+  } else {
+    riskAnalysis = `The inventory presents a LOW-MEDIUM risk profile with stable performance metrics. The current composition shows balanced distribution across lifecycle stages, though there's room for improvement in fast-moving stock percentage (currently ${fastMovingPct}%). The average days to sell of ${data.avgDaysToSell} days is ${data.avgDaysToSell > 90 ? "slightly above optimal" : "within acceptable range"}. Dead stock at ${deadStockPct}% is manageable but should be monitored closely to prevent escalation.`;
+  }
+  textY = addTextWithPageBreak(doc, riskAnalysis, 25, textY, pageWidth, pageHeight, 5);
+  textY += 5;
+  
+  // Sales Velocity Analysis
+  doc.setFont("helvetica", "bold");
+  textY = checkPageBreak(doc, textY, 10, pageHeight);
+  doc.text("Sales Velocity Analysis:", 25, textY);
+  textY += 7;
+  doc.setFont("helvetica", "normal");
+  const velocity = parseFloat(data.avgSalesVelocity);
+  let velocityAnalysis: string;
+  if (velocity > 2.5) {
+    velocityAnalysis = `Sales velocity analysis reveals exceptional performance with an average of ${data.avgSalesVelocity} units/month for fast-moving items. This strong sales rate indicates robust consumer demand, effective marketing, and excellent product positioning. The fast-moving segment, comprising ${data.fastMovingItems.length} items valued at ${formatIndianCurrencyPDF(data.fastMovingValue)}, demonstrates strong market acceptance. This velocity suggests that restocking these categories should be prioritized to maintain sales momentum and capitalize on market demand.`;
+  } else if (velocity > 1.5) {
+    velocityAnalysis = `Sales velocity analysis shows solid performance with an average of ${data.avgSalesVelocity} units/month for fast-moving items. This moderate-to-strong velocity indicates healthy demand for ${data.fastMovingItems.length} fast-moving items valued at ${formatIndianCurrencyPDF(data.fastMovingValue)}. While performance is positive, there's potential to enhance velocity through targeted marketing campaigns, seasonal promotions, or cross-selling strategies. The current velocity supports steady inventory turnover and suggests good alignment with consumer preferences.`;
+  } else {
+    velocityAnalysis = `Sales velocity analysis indicates moderate performance with an average of ${data.avgSalesVelocity} units/month for fast-moving items. While this velocity is acceptable, there's opportunity for improvement through strategic initiatives. The ${data.fastMovingItems.length} fast-moving items (valued at ${formatIndianCurrencyPDF(data.fastMovingValue)}) show promise but could benefit from enhanced marketing efforts, promotional activities, or product positioning adjustments. Consider analyzing customer feedback and market trends to identify opportunities for increasing sales velocity in this segment.`;
+  }
+  textY = addTextWithPageBreak(doc, velocityAnalysis, 25, textY, pageWidth, pageHeight, 5);
+  textY += 5;
+  
+  // Forecast and Outlook
+  doc.setFont("helvetica", "bold");
+  textY = checkPageBreak(doc, textY, 10, pageHeight);
+  doc.text("Forecast and Market Outlook:", 25, textY);
+  textY += 7;
+  doc.setFont("helvetica", "normal");
+  let forecastText: string;
+  if (fastMovingPct > 25 && deadStockPct < 15) {
+    forecastText = `The forecast for your ${data.category.toLowerCase()} inventory is POSITIVE with strong growth potential. The high percentage of fast-moving stock (${fastMovingPct}%) combined with low dead stock levels (${deadStockPct}%) indicates excellent inventory health. The top-performing ${data.topPerforming.type} category with ${data.topPerforming.count} items and sales velocity of ${data.topPerforming.avgVelocity.toFixed(1)} units/month should be prioritized for restocking. Market conditions favor expansion in ${data.topPerformingDesign.style} designs, particularly in ${data.distributionByMetal[0]?.metal || "preferred metals"}. Focus on maintaining this momentum while proactively managing the ${data.slowMovingItems.length} slow-moving items to prevent them from becoming dead stock.`;
+  } else if (deadStockPct > 20) {
+    forecastText = `The forecast indicates a CHALLENGING outlook requiring immediate strategic intervention. With ${deadStockPct}% dead stock (${data.deadStockItems.length} items worth ${formatIndianCurrencyPDF(data.deadStockValue)}), cash flow is significantly impacted. The priority must be aggressive liquidation of dead stock through promotional campaigns, bundling offers, or strategic discounting (20-40% depending on age). Simultaneously, focus on the ${data.fastMovingItems.length} fast-moving items to maintain revenue streams. The ${data.worstPerforming.type} category showing poor performance (${data.worstPerforming.avgVelocity.toFixed(1)} units/month) requires review - consider phasing out or redesigning these items. Recovery is possible but requires decisive action within the next 30-60 days.`;
+  } else {
+    forecastText = `The forecast presents a MODERATE outlook with opportunities for optimization. The current inventory mix shows balanced distribution but with room for improvement. The ${data.fastMovingItems.length} fast-moving items (${fastMovingPct}%) provide a solid foundation, while the ${data.slowMovingItems.length} slow-moving items require attention to prevent escalation to dead stock. Focus on clearing slow-moving inventory through targeted promotions before they age further. The top-performing ${data.topPerforming.type} category demonstrates strong potential and should guide future purchasing decisions. Strategic inventory management over the next quarter can improve overall health scores and cash flow efficiency.`;
+  }
+  textY = addTextWithPageBreak(doc, forecastText, 25, textY, pageWidth, pageHeight, 5);
+  textY += 5;
+  
+  // Strategic Recommendations Summary
+  doc.setFont("helvetica", "bold");
+  textY = checkPageBreak(doc, textY, 10, pageHeight);
+  doc.text("Strategic Recommendations Summary:", 25, textY);
+  textY += 7;
+  doc.setFont("helvetica", "normal");
+  const recommendations = [
+    `• ${deadStockPct > 15 ? "URGENT: Implement liquidation strategy for dead stock to free up " + formatIndianCurrencyPDF(data.deadStockValue) + " in capital" : "Monitor dead stock levels - currently manageable at " + deadStockPct + "%"}`,
+    `• ${fastMovingPct > 25 ? "Maintain and expand fast-moving inventory, particularly " + data.topPerforming.type + " items" : "Increase fast-moving stock percentage through strategic purchasing and marketing"}`,
+    `• Focus purchasing on ${data.topPerformingDesign.style} designs in ${data.distributionByMetal[0]?.metal || "preferred metals"} based on performance data`,
+    `• Review and optimize ${data.worstPerforming.type} category (${data.worstPerforming.avgVelocity.toFixed(1)} units/month velocity)`,
+    `• Target average days to sell below 90 days through improved inventory management`
   ];
   
-  doc.setFontSize(9);
-  let textY = y;
-  analysisText.forEach(line => {
-    if (line) {
-      const splitText = doc.splitTextToSize(line, pageWidth - 50);
-      doc.text(splitText, 25, textY);
-      textY += splitText.length * 5;
-    } else {
-      textY += 3;
-    }
+  recommendations.forEach(rec => {
+    textY = checkPageBreak(doc, textY, 10, pageHeight);
+    textY = addTextWithPageBreak(doc, rec, 30, textY, pageWidth, pageHeight, 5);
+    textY += 3;
   });
   
   return textY + 5;
 }
 
-function addSpecificAIInsights(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "SPECIFIC AI INSIGHTS", y, pageWidth);
-  
-  doc.setTextColor(...COLORS.dark);
-  doc.setFontSize(10);
-  
-  // Top Performer insight
-  doc.setFillColor(236, 253, 245);
-  doc.roundedRect(20, y, pageWidth - 40, 25, 2, 2, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...COLORS.success);
-  doc.text("TOP PERFORMER", 25, y + 8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.dark);
-  doc.text(`Type: ${data.topPerforming.type} | Items: ${data.topPerforming.count} | Value: ${formatIndianCurrencyPDF(data.topPerforming.value)}`, 25, y + 16);
-  doc.text(`Avg. Sales Velocity: ${data.topPerforming.avgVelocity.toFixed(1)} units/month | Design Style: ${data.topPerformingDesign.style}`, 25, y + 22);
-  
-  y += 30;
-  
-  // Worst Performer insight
-  doc.setFillColor(254, 242, 242);
-  doc.roundedRect(20, y, pageWidth - 40, 25, 2, 2, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...COLORS.danger);
-  doc.text("NEEDS ATTENTION", 25, y + 8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.dark);
-  doc.text(`Type: ${data.worstPerforming.type} | Items: ${data.worstPerforming.count} | Value: ${formatIndianCurrencyPDF(data.worstPerforming.value)}`, 25, y + 16);
-  doc.text(`Avg. Sales Velocity: ${data.worstPerforming.avgVelocity.toFixed(1)} units/month | Design Style: ${data.worstPerformingDesign.style}`, 25, y + 22);
-  
-  y += 30;
-  
-  // Design trend insight
-  doc.setFillColor(239, 246, 255);
-  doc.roundedRect(20, y, pageWidth - 40, 20, 2, 2, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...COLORS.primary);
-  doc.text("DESIGN TREND ANALYSIS", 25, y + 8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COLORS.dark);
-  const designDiff = ((data.topPerformingDesign.avgVelocity - data.worstPerformingDesign.avgVelocity) / data.worstPerformingDesign.avgVelocity * 100).toFixed(0);
-  doc.text(`${data.topPerformingDesign.style} designs are performing ${Math.abs(Number(designDiff))}% better than ${data.worstPerformingDesign.style} designs`, 25, y + 16);
-  
-  return y + 28;
-}
-
-function addPurchaseRecommendations(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "PURCHASE RECOMMENDATIONS - WHAT TO BUY NEXT", y, pageWidth);
+function addSpecificAIInsights(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "SPECIFIC AI INSIGHTS", y, pageWidth, pageHeight);
   
   doc.setTextColor(...COLORS.dark);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   
-  doc.text("Based on AI analysis of sales velocity, market trends, and inventory performance:", 25, y);
+  // Introduction text
+  const introText = `Our AI-powered analysis has identified specific performance patterns within your ${data.category.toLowerCase()} inventory. These insights are derived from comprehensive evaluation of sales velocity, inventory age, market trends, and consumer behavior patterns.`;
+  y = addTextWithPageBreak(doc, introText, 25, y, pageWidth, pageHeight, 5);
+  y += 8;
+  
+  // Top Performer insight with detailed analysis
+  y = checkPageBreak(doc, y, 60, pageHeight);
+  const topPerformerText = `The ${data.topPerforming.type} category stands out as your top-performing segment with ${data.topPerforming.count} items generating ${formatIndianCurrencyPDF(data.topPerforming.value)} in inventory value. This category demonstrates exceptional sales velocity of ${data.topPerforming.avgVelocity.toFixed(1)} units/month, significantly outperforming other categories. The success is further amplified by the ${data.topPerformingDesign.style} design style, which shows strong consumer preference. This combination of type and design style represents a winning formula that should be replicated in future purchasing decisions. The consistent performance suggests strong market demand, effective product positioning, and excellent value proposition. We recommend prioritizing restocking of ${data.topPerforming.type} items, particularly in ${data.topPerformingDesign.style} designs, to capitalize on this proven market success.`;
+  const splitTop = doc.splitTextToSize(topPerformerText, pageWidth - 50);
+  const topBoxHeight = Math.max(50, splitTop.length * 5 + 20);
+  doc.setFillColor(236, 253, 245);
+  doc.roundedRect(20, y, pageWidth - 40, topBoxHeight, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.success);
+  doc.text("TOP PERFORMER - EXCEPTIONAL PERFORMANCE", 25, y + 8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.dark);
+  doc.text(splitTop, 25, y + 15);
+  y += topBoxHeight + 5;
+  
+  // Worst Performer insight with detailed analysis
+  y = checkPageBreak(doc, y, 60, pageHeight);
+  const worstPerformerText = `The ${data.worstPerforming.type} category requires immediate strategic intervention, showing concerning performance metrics with only ${data.worstPerforming.avgVelocity.toFixed(1)} units/month sales velocity. With ${data.worstPerforming.count} items valued at ${formatIndianCurrencyPDF(data.worstPerforming.value)} currently in inventory, this segment represents underutilized capital. The ${data.worstPerformingDesign.style} design style associated with this category shows minimal consumer traction. This underperformance could stem from several factors: misalignment with current market trends, pricing issues, lack of marketing visibility, or changing consumer preferences. Immediate actions should include: (1) Review pricing strategy and consider promotional pricing, (2) Evaluate marketing and display positioning, (3) Consider bundling with fast-moving items, (4) Assess whether to phase out this category or redesign to better match market demand. If performance doesn't improve within 60-90 days, consider liquidating remaining stock to free capital for better-performing categories.`;
+  const splitWorst = doc.splitTextToSize(worstPerformerText, pageWidth - 50);
+  const worstBoxHeight = Math.max(50, splitWorst.length * 5 + 20);
+  doc.setFillColor(254, 242, 242);
+  doc.roundedRect(20, y, pageWidth - 40, worstBoxHeight, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.danger);
+  doc.text("NEEDS ATTENTION - UNDERPERFORMING SEGMENT", 25, y + 8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.dark);
+  doc.text(splitWorst, 25, y + 15);
+  y += worstBoxHeight + 5;
+  
+  // Design trend insight with detailed analysis
+  y = checkPageBreak(doc, y, 50, pageHeight);
+  const designDiff = ((data.topPerformingDesign.avgVelocity - data.worstPerformingDesign.avgVelocity) / data.worstPerformingDesign.avgVelocity * 100).toFixed(0);
+  const designTrendText = `Design style analysis reveals significant performance variance: ${data.topPerformingDesign.style} designs are performing ${Math.abs(Number(designDiff))}% better than ${data.worstPerformingDesign.style} designs. This substantial difference indicates clear consumer preference trends. The ${data.topPerformingDesign.style} style, with ${data.topPerformingDesign.count} items and average sales velocity of ${data.topPerformingDesign.avgVelocity.toFixed(1)} units/month, represents a strong market preference that should guide future design selections. In contrast, ${data.worstPerformingDesign.style} designs show limited appeal with ${data.worstPerformingDesign.count} items and ${data.worstPerformingDesign.avgVelocity.toFixed(1)} units/month velocity. This insight suggests that future inventory purchases should heavily favor ${data.topPerformingDesign.style} designs while minimizing or avoiding ${data.worstPerformingDesign.style} styles unless market research indicates a shift in consumer preferences.`;
+  const splitDesign = doc.splitTextToSize(designTrendText, pageWidth - 50);
+  const designBoxHeight = Math.max(45, splitDesign.length * 5 + 20);
+  doc.setFillColor(239, 246, 255);
+  doc.roundedRect(20, y, pageWidth - 40, designBoxHeight, 2, 2, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...COLORS.primary);
+  doc.text("DESIGN TREND ANALYSIS - CONSUMER PREFERENCE INSIGHTS", 25, y + 8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...COLORS.dark);
+  doc.text(splitDesign, 25, y + 15);
+  y += designBoxHeight + 5;
+  
+  // Metal preference insight
+  if (data.distributionByMetal.length > 0) {
+    y = checkPageBreak(doc, y, 35, pageHeight);
+    const topMetal = data.distributionByMetal[0];
+    const metalText = `Metal type analysis shows ${topMetal.metal} as the dominant preference with ${topMetal.count} items (${formatIndianCurrencyPDF(topMetal.value)}). This represents ${((topMetal.count / data.totalItems) * 100).toFixed(1)}% of your inventory, indicating strong market demand for this metal type. Future purchasing should prioritize ${topMetal.metal} to align with consumer preferences and optimize inventory composition.`;
+    const splitMetal = doc.splitTextToSize(metalText, pageWidth - 50);
+    const metalBoxHeight = Math.max(30, splitMetal.length * 5 + 20);
+    doc.setFillColor(255, 251, 235);
+    doc.roundedRect(20, y, pageWidth - 40, metalBoxHeight, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...COLORS.warning);
+    doc.text("METAL PREFERENCE ANALYSIS", 25, y + 8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...COLORS.dark);
+    doc.text(splitMetal, 25, y + 15);
+    y += metalBoxHeight + 5;
+  }
+  
+  return y + 5;
+}
+
+function addPurchaseRecommendations(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "PURCHASE RECOMMENDATIONS - WHAT TO BUY NEXT", y, pageWidth, pageHeight);
+  
+  doc.setTextColor(...COLORS.dark);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  
+  // Detailed introduction
+  const introText = `Our AI-powered purchase recommendations are derived from comprehensive analysis of sales velocity patterns, inventory performance metrics, market trends, and consumer behavior data. These recommendations are designed to optimize your inventory composition, maximize sales potential, and minimize the risk of accumulating slow-moving or dead stock.`;
+  y = addTextWithPageBreak(doc, introText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Analysis methodology
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Recommendation Methodology:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const methodologyText = `Each recommendation is prioritized based on: (1) Historical sales velocity of similar items, (2) Current inventory gaps in fast-moving categories, (3) Design style performance trends, (4) Metal type preferences, (5) Price point optimization, and (6) Seasonal demand patterns. High-priority items align with proven top performers, while medium and low priorities represent diversification opportunities or emerging trends.`;
+  y = addTextWithPageBreak(doc, methodologyText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Key insights
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Key Insights for Purchasing Strategy:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const insightsText = `The analysis reveals that ${data.topPerforming.type} items in ${data.topPerformingDesign.style} designs show exceptional performance with ${data.topPerforming.avgVelocity.toFixed(1)} units/month velocity. This combination should be your primary focus for restocking. Additionally, ${data.fastMovingTopType} items demonstrate strong fast-moving characteristics, making them reliable choices for inventory expansion. The ${data.distributionByMetal[0]?.metal || "preferred metal"} type shows dominant market preference, representing ${data.distributionByMetal[0] ? ((data.distributionByMetal[0].count / data.totalItems) * 100).toFixed(1) : "significant"}% of current inventory. Future purchases should prioritize these proven combinations while maintaining diversity to capture different market segments.`;
+  y = addTextWithPageBreak(doc, insightsText, 25, y, pageWidth, pageHeight, 5);
   y += 8;
   
   // Generate purchase recommendations based on top performers
@@ -446,17 +609,69 @@ function addPurchaseRecommendations(doc: jsPDF, data: CategoryReportData, y: num
     margin: { left: 20, right: 20 },
   });
   
-  return doc.lastAutoTable.finalY + 10;
+  y = doc.lastAutoTable.finalY + 8;
+  
+  // Detailed implementation guidance
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Implementation Guidance:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const implementationText = `When implementing these purchase recommendations, consider the following strategic approach: (1) Start with High-priority items - allocate 60-70% of purchasing budget to these proven performers to maximize ROI and minimize risk. (2) Balance inventory composition - while focusing on top performers, maintain 20-30% allocation to medium-priority items for market diversification and trend exploration. (3) Monitor performance - track sales velocity of newly purchased items and adjust future purchasing based on actual performance data. (4) Seasonal considerations - adjust purchasing volumes based on seasonal demand patterns, increasing stock before peak seasons for high-priority items. (5) Price point optimization - maintain competitive pricing while ensuring healthy margins, particularly for high-velocity items where volume compensates for potentially lower margins. (6) Supplier relationships - establish strong relationships with suppliers of recommended items to ensure consistent quality and availability.`;
+  y = addTextWithPageBreak(doc, implementationText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Expected outcomes
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Expected Outcomes:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const outcomesText = `Following these recommendations is expected to: (1) Increase overall inventory turnover rate by focusing on fast-moving categories, (2) Improve cash flow efficiency through faster sales cycles, (3) Reduce dead stock accumulation by prioritizing proven performers, (4) Enhance customer satisfaction by maintaining availability of popular items, (5) Optimize inventory health score through better stock composition, and (6) Maximize return on inventory investment by aligning purchases with market demand. Regular review and adjustment of purchasing strategy based on performance data will ensure continued optimization of inventory composition.`;
+  y = addTextWithPageBreak(doc, outcomesText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  return y;
 }
 
-function addLiquidationRecommendations(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "LIQUIDATION RECOMMENDATIONS - WHAT TO LIQUIDATE", y, pageWidth);
+function addLiquidationRecommendations(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "LIQUIDATION RECOMMENDATIONS - WHAT TO LIQUIDATE", y, pageWidth, pageHeight);
   
   doc.setTextColor(...COLORS.dark);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   
-  doc.text("Items recommended for immediate liquidation based on days in stock and sales performance:", 25, y);
+  // Detailed introduction
+  const introText = `Liquidation recommendations are critical for maintaining healthy inventory turnover and freeing up capital tied in non-performing stock. Our AI analysis has identified ${data.deadStockItems.length} items (${data.deadStockPercentage}% of inventory) classified as dead stock, representing ${formatIndianCurrencyPDF(data.deadStockValue)} in tied-up capital. These items have exceeded optimal inventory age thresholds and show minimal to zero sales velocity, indicating they are unlikely to sell at current pricing without strategic intervention.`;
+  y = addTextWithPageBreak(doc, introText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Impact analysis
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Impact of Dead Stock on Business Performance:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const impactText = `Dead stock significantly impacts your business in multiple ways: (1) Capital Lock-up: ${formatIndianCurrencyPDF(data.deadStockValue)} is currently immobilized in non-moving inventory, preventing investment in fast-moving, profitable items. (2) Carrying Costs: Each day these items remain in inventory, they incur storage, insurance, and opportunity costs. With an average age of ${data.deadStockAvgDays} days, these costs have accumulated substantially. (3) Cash Flow: Liquidating dead stock converts stagnant inventory into cash, improving liquidity for operational needs and strategic investments. (4) Inventory Health: High dead stock percentage (${data.deadStockPercentage}%) negatively impacts overall inventory health scores and indicates suboptimal inventory management. (5) Space Utilization: Dead stock occupies valuable retail or storage space that could be better utilized for fast-moving items. (6) Psychological Impact: Non-moving inventory can create a perception of outdated or undesirable merchandise, potentially affecting brand image.`;
+  y = addTextWithPageBreak(doc, impactText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Liquidation strategy
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Recommended Liquidation Strategies:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const strategyText = `Based on inventory age and performance data, we recommend a tiered liquidation approach: (1) Items over 365 days: Implement aggressive 40-50% discounts or consider bundling with fast-moving items to create value perception. (2) Items 270-365 days: Apply 30-40% discounts, potentially during seasonal sales or promotional events. (3) Items 180-270 days: Use 20-30% discounts, possibly through flash sales or limited-time offers. (4) Items approaching 180 days: Consider 15-20% discounts to prevent further aging. Additionally, explore alternative channels such as online marketplaces, clearance sections, or wholesale liquidation if retail discounts prove insufficient. The goal is to recover maximum value while minimizing time-to-liquidation.`;
+  y = addTextWithPageBreak(doc, strategyText, 25, y, pageWidth, pageHeight, 5);
+  y += 8;
+  
+  // Table introduction
+  doc.setFont("helvetica", "bold");
+  doc.text("Priority Liquidation Items (Top 10 by Age):", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  doc.text("The following items are prioritized for immediate liquidation based on days in stock, current value, and sales performance:", 25, y);
   y += 8;
   
   // Get dead stock items for liquidation (top 10)
@@ -517,20 +732,55 @@ function addLiquidationRecommendations(doc: jsPDF, data: CategoryReportData, y: 
       margin: { left: 20, right: 20 },
     });
     
-    y = doc.lastAutoTable.finalY + 5;
+    y = doc.lastAutoTable.finalY + 8;
   }
   
-  // Summary text
-  doc.setFontSize(8);
-  doc.setTextColor(...COLORS.secondary);
+  // Detailed analysis after table
+  doc.setFontSize(9);
+  doc.setTextColor(...COLORS.dark);
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Liquidation Value Analysis:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
   const totalLiquidationValue = data.deadStockItems.reduce((sum, item) => sum + (item.finalSellingPrice || 0), 0);
-  doc.text(`Total potential recovery from liquidation: ${formatIndianCurrencyPDF(totalLiquidationValue)} (before discounts)`, 25, y);
+  const avgDiscount = liquidationItems.length > 0 
+    ? liquidationItems.reduce((sum, item) => {
+        const discountRange = item.discount.split("-")[0];
+        return sum + parseFloat(discountRange);
+      }, 0) / liquidationItems.length
+    : 20;
+  const estimatedRecovery = totalLiquidationValue * (1 - avgDiscount / 100);
   
-  return y + 10;
+  const valueAnalysis = `The total potential recovery from liquidating all ${data.deadStockItems.length} dead stock items is ${formatIndianCurrencyPDF(totalLiquidationValue)} at current prices. With an average discount of approximately ${avgDiscount.toFixed(0)}%, the estimated net recovery would be approximately ${formatIndianCurrencyPDF(estimatedRecovery)}. While this represents a discount from original value, the recovered capital can be immediately reinvested in fast-moving inventory that generates active revenue. The opportunity cost of maintaining dead stock far exceeds the discount required for liquidation. Additionally, clearing dead stock improves inventory health metrics, enhances cash flow, and frees up valuable display or storage space for profitable items.`;
+  y = addTextWithPageBreak(doc, valueAnalysis, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Implementation timeline
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Recommended Implementation Timeline:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const timelineText = `To maximize liquidation effectiveness, we recommend the following timeline: (1) Immediate (Week 1-2): Begin liquidation of items over 365 days old with 40-50% discounts. These represent the highest priority and longest-aged inventory. (2) Short-term (Week 3-4): Implement 30-40% discounts for items aged 270-365 days. Consider bundling strategies or promotional events. (3) Medium-term (Month 2): Apply 20-30% discounts to items aged 180-270 days. Monitor sales velocity and adjust pricing if needed. (4) Ongoing: Maintain 15-20% discounts for items approaching 180 days to prevent further aging. Regular monitoring and adjustment of liquidation strategies based on sales response is essential for optimal results.`;
+  y = addTextWithPageBreak(doc, timelineText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  // Success metrics
+  doc.setFont("helvetica", "bold");
+  y = checkPageBreak(doc, y, 10, pageHeight);
+  doc.text("Success Metrics and Monitoring:", 25, y);
+  y += 7;
+  doc.setFont("helvetica", "normal");
+  const metricsText = `Track the following metrics to measure liquidation success: (1) Liquidation Rate: Percentage of dead stock items sold within 30, 60, and 90 days. Target: 70%+ within 90 days. (2) Recovery Rate: Actual recovery value vs. estimated recovery. Target: 85%+ of estimated value. (3) Time-to-Liquidation: Average days from liquidation start to sale. Target: <45 days. (4) Cash Flow Impact: Improvement in cash flow from liquidation proceeds. (5) Inventory Health Improvement: Reduction in dead stock percentage post-liquidation. Target: <10% dead stock. (6) Space Utilization: Improvement in available space for fast-moving items. Regular review of these metrics will help refine liquidation strategies and improve future inventory management.`;
+  y = addTextWithPageBreak(doc, metricsText, 25, y, pageWidth, pageHeight, 5);
+  y += 5;
+  
+  return y;
 }
 
-function addKeyMetricsSummary(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "KEY METRICS SUMMARY", y, pageWidth);
+function addKeyMetricsSummary(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "KEY METRICS SUMMARY", y, pageWidth, pageHeight);
   
   const metricsData = [
     ["Metric", "Value", "Status"],
@@ -587,8 +837,8 @@ function addKeyMetricsSummary(doc: jsPDF, data: CategoryReportData, y: number, p
   return doc.lastAutoTable.finalY + 10;
 }
 
-function addConclusion(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number): number {
-  y = addSectionTitle(doc, "CONCLUSION & ACTION ITEMS", y, pageWidth);
+function addConclusion(doc: jsPDF, data: CategoryReportData, y: number, pageWidth: number, pageHeight: number): number {
+  y = addSectionTitle(doc, "CONCLUSION & ACTION ITEMS", y, pageWidth, pageHeight);
   
   doc.setTextColor(...COLORS.dark);
   doc.setFontSize(9);
@@ -627,22 +877,22 @@ function addConclusion(doc: jsPDF, data: CategoryReportData, y: number, pageWidt
   
   let actionY = y + 18;
   actions.forEach(action => {
-    const splitAction = doc.splitTextToSize(action, pageWidth - 55);
-    doc.text(splitAction, 25, actionY);
-    actionY += splitAction.length * 5 + 2;
+    actionY = checkPageBreak(doc, actionY, 10, pageHeight);
+    actionY = addTextWithPageBreak(doc, action, 25, actionY, pageWidth, pageHeight, 5);
+    actionY += 2;
   });
   
-  y += 58;
+  y = actionY + 5;
   
   // Summary text
   doc.setFontSize(9);
   doc.setTextColor(...COLORS.secondary);
   doc.setFont("helvetica", "italic");
+  y = checkPageBreak(doc, y, 10, pageHeight);
   const summaryText = `This report provides AI-driven insights for ${data.category.toLowerCase()} inventory optimization. Regular monitoring and prompt action on liquidation recommendations will help improve cash flow and inventory turnover.`;
-  const splitSummary = doc.splitTextToSize(summaryText, pageWidth - 50);
-  doc.text(splitSummary, 25, y);
+  y = addTextWithPageBreak(doc, summaryText, 25, y, pageWidth, pageHeight, 5);
   
-  return y + splitSummary.length * 5 + 10;
+  return y + 10;
 }
 
 // Main export function for individual category reports
@@ -661,51 +911,14 @@ export async function generateCategoryPDF(category: string, data: CategoryReport
   
   let y = addHeader(doc, category, pageWidth);
   
-  // Add all sections
-  y = addExecutiveSummary(doc, data, y, pageWidth);
-  
-  // Check if we need a new page
-  if (y > pageHeight - 80) {
-    doc.addPage();
-    y = 20;
-  }
-  
-  y = addOverallAIPrediction(doc, data, y, pageWidth);
-  
-  if (y > pageHeight - 80) {
-    doc.addPage();
-    y = 20;
-  }
-  
-  y = addSpecificAIInsights(doc, data, y, pageWidth);
-  
-  if (y > pageHeight - 80) {
-    doc.addPage();
-    y = 20;
-  }
-  
-  y = addPurchaseRecommendations(doc, data, y, pageWidth);
-  
-  if (y > pageHeight - 80) {
-    doc.addPage();
-    y = 20;
-  }
-  
-  y = addLiquidationRecommendations(doc, data, y, pageWidth);
-  
-  if (y > pageHeight - 100) {
-    doc.addPage();
-    y = 20;
-  }
-  
-  y = addKeyMetricsSummary(doc, data, y, pageWidth);
-  
-  if (y > pageHeight - 80) {
-    doc.addPage();
-    y = 20;
-  }
-  
-  y = addConclusion(doc, data, y, pageWidth);
+  // Add all sections (page breaks are now handled within each function)
+  y = addExecutiveSummary(doc, data, y, pageWidth, pageHeight);
+  y = addOverallAIPrediction(doc, data, y, pageWidth, pageHeight);
+  y = addSpecificAIInsights(doc, data, y, pageWidth, pageHeight);
+  y = addPurchaseRecommendations(doc, data, y, pageWidth, pageHeight);
+  y = addLiquidationRecommendations(doc, data, y, pageWidth, pageHeight);
+  y = addKeyMetricsSummary(doc, data, y, pageWidth, pageHeight);
+  y = addConclusion(doc, data, y, pageWidth, pageHeight);
   
   // Add footers to all pages
   const totalPages = doc.getNumberOfPages();
